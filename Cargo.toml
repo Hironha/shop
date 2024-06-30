@@ -1,0 +1,40 @@
+[package]
+name = "shop"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+name = "domain"
+path = "src/domain/lib.rs"
+
+[[bin]]
+name = "main"
+doc = false
+path = "src/main.rs"
+
+[profile.dev]
+debug = false
+
+[profile.dev.package.askama_derive]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+strip = "symbols"
+
+[dependencies]
+askama = "0.12.1"
+axum = "0.7.5"
+rust_decimal = "1.35.0"
+serde = { version = "1.0.204", features = ["derive"] }
+sqlx = { version = "0.7.4", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "rust_decimal",
+    "time",
+    "uuid",
+] }
+thiserror = "1.0.61"
+time = { version = "0.3.36", features = ["formatting", "serde"] }
+tokio = { version = "1.38.0", features = ["macros", "rt-multi-thread"] }
+uuid = { version = "1.9.1", features = ["serde", "v7"] }

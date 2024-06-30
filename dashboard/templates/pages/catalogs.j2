@@ -1,0 +1,67 @@
+{% extends "bases/auth.j2" %}
+
+{% block title %}Catálogos{% endblock title %}
+
+{% block content %}
+<div class="flex flex-col gap-4">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-2xl">Nome da loja - TODO</h1>
+    <div class="breadcrumbs text-sm">
+      <ul>
+        <li>Dashboard</li>
+        <li>Catálogos</li>
+      </ul>
+    </div>
+
+    <article class="grid grid-cols-1 gap-4 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2">
+      <div class="card bg-primary shadow-xl text-primary-content">
+        <div class="card-body">
+          <h2 class="card-title">Card title!</h2>
+          <p>If a dog chews shoes whose shoes does he choose?</p>
+        </div>
+      </div>
+
+      <div class="card bg-primary shadow-xl text-primary-content">
+        <div class="card-body">
+          <h2 class="card-title">Card title!</h2>
+          <p>If a dog chews shoes whose shoes does he choose?</p>
+        </div>
+      </div>
+
+      <div class="card bg-primary shadow-xl text-primary-content">
+        <div class="card-body">
+          <h2 class="card-title">Card title!</h2>
+          <p>If a dog chews shoes whose shoes does he choose?</p>
+        </div>
+      </div>
+
+      <div class="card bg-primary shadow-xl text-primary-content">
+        <div class="card-body">
+          <h2 class="card-title">Card title!</h2>
+          <p>If a dog chews shoes whose shoes does he choose?</p>
+        </div>
+      </div>
+    </article>
+  </header>
+
+  <main>
+    {% for catalog in pagination.items %}
+    <ul class="flex flex-col gap-4">
+      <p>Nome: {{+ catalog.name }}</p>
+      {% if let Some(description) = catalog.description %}
+      <p>Descrição: {{+ description }}</p>
+      {% endif %}
+
+      {% if catalog.products.len() > 0 %}
+      <ul class="flex flex-col gap-4">
+        {% for product in catalog.products %}
+        <li>Nome: {{+ product.name }}</li>
+        <li>Preço: {{+ product.price / 100 }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </ul>
+    {% endfor %}
+  </main>
+</div>
+{% endblock content %}

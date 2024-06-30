@@ -1,0 +1,1 @@
+select extra.* from extra where id = any($1)

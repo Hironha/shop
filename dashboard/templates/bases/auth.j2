@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="fantasy">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Online shop made easy" />
+  <meta name="keywords" content="Shop, E-Commerce, Dashboard" />
+  <meta name="author" content="Hironha" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" type="text/css" href="/dashboard/assets/main.css" />
+  <title>{% block title %}Shop{% endblock title %}</title>
+</head>
+
+<body>
+  <div class="drawer lg:drawer-open">
+    <input id="sidebar-toggle" type="checkbox" class="drawer-toggle" />
+    <div class="drawer-content p-6">
+      {% block content %}{% endblock content %}
+
+      <!-- Page content here -->
+      <label for="sidebar-toggle" class="btn btn-primary drawer-button lg:hidden">
+        Open drawer
+      </label>
+    </div>
+
+    <aside class="drawer-side">
+      <label for="sidebar-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+      <ul class="menu bg-base-200 min-h-full flex flex-col gap-2 w-60 p-4">
+        <!-- Sidebar content here -->
+        <li><a target="_self" href="/catalogs">Catálogos</a></li>
+        <li><a target="_self" href="/extras">Adicionais</a></li>
+        <li><a target="_self" href="/health-check">Health Check</a></li>
+        <li><a target="_self" href="/not-found">Not Found</a></li>
+      </ul>
+    </aside>
+  </div>
+</body>
+
+</html>

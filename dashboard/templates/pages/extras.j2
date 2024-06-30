@@ -1,0 +1,26 @@
+{% extends "bases/auth.j2" %}
+
+{% block title %}Extras{% endblock title %}
+
+{% block content %}
+<div class="flex flex-col gap-4">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-2xl">Nome da loja - TODO</h1>
+    <div class="breadcrumbs text-sm">
+      <ul>
+        <li>Dashboard</li>
+        <li>Adicionais</li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    {% for extra in extras %}
+    <ul class="flex flex-col gap-4">
+      <p>Nome: {{+ extra.name }}</p>
+      <p>Preço: {{+ extra.price }}</p>
+    </ul>
+    {% endfor %}
+  </main>
+</div>
+{% endblock content %}
