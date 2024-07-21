@@ -20,7 +20,7 @@ impl Error {
     /// Utility function to create [`Error::Internal`] without manually
     /// boxing the error
     #[must_use]
-    pub fn any(err: impl std::error::Error + 'static) -> Self {
+    pub fn any(err: impl Into<Box<dyn std::error::Error>>) -> Self {
         Self::Internal(err.into())
     }
 

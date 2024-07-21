@@ -63,17 +63,6 @@ impl From<ProductsError> for Error {
     }
 }
 
-impl From<product::Error> for Error {
-    fn from(value: product::Error) -> Self {
-        match value {
-            product::Error::Conflict(kind) => Self::Conflict(ConflictKind::Product(kind)),
-            product::Error::Internal(src) => Self::Internal(src),
-            product::Error::NotFound(kind) => Self::NotFound(NotFoundKind::Product(kind)),
-            product::Error::Validation(kind) => Self::Validation(ValidationKind::Product(kind)),
-        }
-    }
-}
-
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum ConflictKind {
     #[error("Product catalog with id `{0}` already exists")]

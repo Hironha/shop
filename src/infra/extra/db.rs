@@ -40,50 +40,48 @@ impl extra::Repository for PgExtras {
         models
             .into_iter()
             .map(ExtraModel::try_into_entity)
-            .collect()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(extra::Error::any)
     }
 
     async fn create(&mut self, extra: &extra::Extra) -> Result<(), extra::Error> {
-        queries::CreateQuery { extra }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| {
-                if Self::is_pk_error(&err) {
-                    extra::Error::id_conflict(extra.id())
-                } else if Self::is_ak_name_error(&err) {
-                    extra::Error::name_conflict(extra.name().clone())
-                } else {
-                    extra::Error::any(err)
-                }
-            })?;
+        let query = queries::CreateQuery { extra };
+        query.exec(&self.pool).await.map_err(|err| {
+            if Self::is_pk_error(&err) {
+                extra::Error::id_conflict(extra.id())
+            } else if Self::is_ak_name_error(&err) {
+                extra::Error::name_conflict(extra.name().clone())
+            } else {
+                extra::Error::any(err)
+            }
+        })?;
 
         Ok(())
     }
 
     async fn delete(&mut self, id: extra::Id) -> Result<extra::Extra, extra::Error> {
-        queries::DeleteQuery { id }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| match &err {
-                sqlx::Error::RowNotFound => extra::Error::NotFound(id),
-                _ => extra::Error::any(err),
-            })
-            .and_then(ExtraModel::try_into_entity)
+        let query = queries::DeleteQuery { id };
+        let model = query.exec(&self.pool).await.map_err(|err| match &err {
+            sqlx::Error::RowNotFound => extra::Error::NotFound(id),
+            _ => extra::Error::any(err),
+        })?;
+
+        model.try_into_entity().map_err(extra::Error::any)
     }
 
     async fn find(&self, id: extra::Id) -> Result<extra::Extra, extra::Error> {
-        queries::FindQuery { id }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| match &err {
-                sqlx::Error::RowNotFound => extra::Error::NotFound(id),
-                _ => extra::Error::any(err),
-            })
-            .and_then(ExtraModel::try_into_entity)
+        let query = queries::FindQuery { id };
+        let model = query.exec(&self.pool).await.map_err(|err| match &err {
+            sqlx::Error::RowNotFound => extra::Error::NotFound(id),
+            _ => extra::Error::any(err),
+        })?;
+
+        model.try_into_entity().map_err(extra::Error::any)
     }
 
     async fn find_many(&self, ids: &[extra::Id]) -> Result<Vec<extra::Extra>, extra::Error> {
-        let models = queries::FindManyQuery { ids }
+        let find_many_query = queries::FindManyQuery { ids };
+        let models = find_many_query
             .exec(&self.pool)
             .await
             .map_err(extra::Error::any)?;
@@ -91,7 +89,8 @@ impl extra::Repository for PgExtras {
         let extras = models
             .into_iter()
             .map(ExtraModel::try_into_entity)
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(extra::Error::any)?;
 
         if let Some(id_not_found) = ids.iter().find(|id| !extras.iter().any(|e| e.id().eq(id))) {
             return Err(extra::Error::NotFound(*id_not_found));
@@ -101,18 +100,16 @@ impl extra::Repository for PgExtras {
     }
 
     async fn update(&mut self, extra: &extra::Extra) -> Result<(), extra::Error> {
-        queries::UpdateQuery { extra }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| {
-                if matches!(err, sqlx::Error::RowNotFound) {
-                    extra::Error::NotFound(extra.id())
-                } else if Self::is_ak_name_error(&err) {
-                    extra::Error::name_conflict(extra.name().clone())
-                } else {
-                    extra::Error::any(err)
-                }
-            })?;
+        let query = queries::UpdateQuery { extra };
+        query.exec(&self.pool).await.map_err(|err| {
+            if matches!(err, sqlx::Error::RowNotFound) {
+                extra::Error::NotFound(extra.id())
+            } else if Self::is_ak_name_error(&err) {
+                extra::Error::name_conflict(extra.name().clone())
+            } else {
+                extra::Error::any(err)
+            }
+        })?;
 
         Ok(())
     }

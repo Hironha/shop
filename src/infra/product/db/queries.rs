@@ -122,7 +122,7 @@ pub(super) struct UpdateQuery<'a> {
 }
 
 impl<'a> UpdateQuery<'a> {
-    pub async fn exec(self, exec: impl PgExecutor<'a>) -> Result<u64, sqlx::Error> {
+    pub async fn exec(self, exec: impl PgExecutor<'a>) -> Result<(), sqlx::Error> {
         let update_sql = include_str!("./sql/update.sql");
         let result = sqlx::query(update_sql)
             .bind(self.product.name().as_str())
@@ -133,6 +133,10 @@ impl<'a> UpdateQuery<'a> {
             .execute(exec)
             .await?;
 
-        Ok(result.rows_affected())
+        if result.rows_affected() == 0 {
+            return Err(sqlx::Error::RowNotFound);
+        }
+
+        Ok(())
     }
 }

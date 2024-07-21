@@ -21,16 +21,12 @@ pub struct CatalogModel {
 }
 
 impl CatalogModel {
-    // TODO: find a better way to map model into entity
-    pub fn try_into_entity(self) -> Result<catalog::Catalog, catalog::Error> {
+    pub fn try_into_entity(self) -> Result<catalog::Catalog, Box<dyn std::error::Error>> {
         let name = catalog::Name::new(self.name)?;
         let description = self
             .description
             .map(catalog::Description::new)
             .transpose()?;
-
-        let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)
-            .map_err(|err| catalog::Error::Internal(err.into()))?;
 
         let products = self
             .products
@@ -41,6 +37,7 @@ impl CatalogModel {
 
         let products = catalog::Products::new(products)?;
 
+        let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
         let product_catalog = catalog::Catalog::config(catalog::Config {
             id: catalog::Id::from(self.id),
             name,

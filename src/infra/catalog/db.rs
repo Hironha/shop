@@ -32,43 +32,39 @@ impl PgCatalogs {
 
 impl catalog::Repository for PgCatalogs {
     async fn create(&mut self, catalog: &catalog::Catalog) -> Result<(), catalog::Error> {
-        queries::CreateQuery { catalog }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| {
-                if Self::is_pk_error(&err) {
-                    catalog::Error::id_conflict(catalog.id())
-                } else if Self::is_ak_name_error(&err) {
-                    let name = catalog.name().clone();
-                    catalog::Error::name_conflict(name)
-                } else {
-                    catalog::Error::any(err)
-                }
-            })?;
+        let query = queries::CreateQuery { catalog };
+        query.exec(&self.pool).await.map_err(|err| {
+            if Self::is_pk_error(&err) {
+                catalog::Error::id_conflict(catalog.id())
+            } else if Self::is_ak_name_error(&err) {
+                let name = catalog.name().clone();
+                catalog::Error::name_conflict(name)
+            } else {
+                catalog::Error::any(err)
+            }
+        })?;
 
         Ok(())
     }
 
     async fn delete(&self, id: catalog::Id) -> Result<catalog::Catalog, catalog::Error> {
-        queries::DeleteQuery { id }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| match err {
-                sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
-                _ => catalog::Error::any(err),
-            })
-            .and_then(CatalogModel::try_into_entity)
+        let query = queries::DeleteQuery { id };
+        let model = query.exec(&self.pool).await.map_err(|err| match err {
+            sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
+            _ => catalog::Error::any(err),
+        })?;
+
+        model.try_into_entity().map_err(catalog::Error::any)
     }
 
     async fn find(&self, id: catalog::Id) -> Result<catalog::Catalog, catalog::Error> {
-        queries::FindQuery { id }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| match err {
-                sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
-                _ => catalog::Error::any(err),
-            })
-            .and_then(CatalogModel::try_into_entity)
+        let query = queries::FindQuery { id };
+        let model = query.exec(&self.pool).await.map_err(|err| match err {
+            sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
+            _ => catalog::Error::any(err),
+        })?;
+
+        model.try_into_entity().map_err(catalog::Error::any)
     }
 
     async fn list(&self, query: catalog::ListQuery) -> Result<catalog::Pagination, catalog::Error> {
@@ -77,18 +73,21 @@ impl catalog::Repository for PgCatalogs {
             .await
             .map_err(catalog::Error::any)?;
 
-        let models = queries::ListQuery {
+        let list_query = queries::ListQuery {
             limit: u16::try_from(query.limit).unwrap_or(u16::MAX),
             page: query.page,
-        }
-        .exec(&self.pool)
-        .await
-        .map_err(catalog::Error::any)?;
+        };
+
+        let models = list_query
+            .exec(&self.pool)
+            .await
+            .map_err(catalog::Error::any)?;
 
         let catalogs = models
             .into_iter()
             .map(CatalogModel::try_into_entity)
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(catalog::Error::any)?;
 
         Ok(catalog::Pagination {
             count,
@@ -99,18 +98,16 @@ impl catalog::Repository for PgCatalogs {
     }
 
     async fn update(&mut self, catalog: &catalog::Catalog) -> Result<(), catalog::Error> {
-        queries::UpdateQuery { catalog }
-            .exec(&self.pool)
-            .await
-            .map_err(|err| {
-                if matches!(err, sqlx::Error::RowNotFound) {
-                    catalog::Error::id_conflict(catalog.id())
-                } else if Self::is_ak_name_error(&err) {
-                    catalog::Error::name_conflict(catalog.name().clone())
-                } else {
-                    catalog::Error::any(err)
-                }
-            })?;
+        let query = queries::UpdateQuery { catalog };
+        query.exec(&self.pool).await.map_err(|err| {
+            if matches!(err, sqlx::Error::RowNotFound) {
+                catalog::Error::id_conflict(catalog.id())
+            } else if Self::is_ak_name_error(&err) {
+                catalog::Error::name_conflict(catalog.name().clone())
+            } else {
+                catalog::Error::any(err)
+            }
+        })?;
 
         Ok(())
     }

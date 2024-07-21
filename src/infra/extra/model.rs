@@ -18,12 +18,9 @@ pub struct ExtraModel {
 }
 
 impl ExtraModel {
-    // TODO: find a better way to map model into entity
-    pub fn try_into_entity(self) -> Result<extra::Extra, extra::Error> {
+    pub fn try_into_entity(self) -> Result<extra::Extra, Box<dyn std::error::Error>> {
         let name = extra::Name::new(self.name)?;
-        let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)
-            .map_err(|err| extra::Error::Internal(err.into()))?;
-
+        let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
         let product_extra = extra::Extra::config(extra::Config {
             id: extra::Id::from(self.id),
             name,
