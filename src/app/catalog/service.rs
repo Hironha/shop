@@ -14,10 +14,7 @@ impl<T: catalog::Repository> CatalogService<T> {
         Self { catalogs }
     }
 
-    pub async fn create(
-        &mut self,
-        input: dto::CreateInput,
-    ) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn create(&mut self, input: CreateInput) -> Result<catalog::Catalog, catalog::Error> {
         let name = catalog::Name::new(input.name)?;
         let description = input
             .description
@@ -32,20 +29,17 @@ impl<T: catalog::Repository> CatalogService<T> {
         Ok(catalog)
     }
 
-    pub async fn delete(
-        &mut self,
-        input: dto::DeleteInput,
-    ) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn delete(&mut self, input: DeleteInput) -> Result<catalog::Catalog, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         self.catalogs.delete(id).await
     }
 
-    pub async fn find(&self, input: dto::FindInput) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn find(&self, input: FindInput) -> Result<catalog::Catalog, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         self.catalogs.find(id).await
     }
 
-    pub async fn list(&self, input: dto::ListInput) -> Result<catalog::Pagination, catalog::Error> {
+    pub async fn list(&self, input: ListInput) -> Result<catalog::Pagination, catalog::Error> {
         let query = catalog::ListQuery {
             page: input.page,
             limit: input.limit,
@@ -54,10 +48,7 @@ impl<T: catalog::Repository> CatalogService<T> {
         self.catalogs.list(query).await
     }
 
-    pub async fn update(
-        &mut self,
-        input: dto::UpdateInput,
-    ) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn update(&mut self, input: UpdateInput) -> Result<catalog::Catalog, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         let name = catalog::Name::new(input.name)?;
         let description = input
