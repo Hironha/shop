@@ -1,18 +1,17 @@
 use axum::extract::{Json, Path, State};
-use axum::http::header;
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse};
+use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
 use domain::extra;
 
 use super::service::{CreateInput, DeleteInput, ExtraService, UpdateInput};
-use super::view::{ExtraView, ListTempl};
+use super::view::ExtraView;
 use crate::app::ApiError;
 use crate::infra::PgExtras;
 use crate::Context;
 
-pub async fn all(State(ctx): State<Context>, header: header::HeaderMap) -> impl IntoResponse {
+pub async fn all(State(ctx): State<Context>) -> Response {
     let service = ExtraService::new(PgExtras::new(ctx.pool));
     let extras = match service.all().await {
         Ok(extras) => extras,
@@ -23,16 +22,7 @@ pub async fn all(State(ctx): State<Context>, header: header::HeaderMap) -> impl 
     };
 
     let views = extras.iter().map(ExtraView::new).collect::<Vec<_>>();
-    match header.get(header::ACCEPT).map(header::HeaderValue::to_str) {
-        Some(Ok("application/json")) => Json(views).into_response(),
-        Some(_) | None => {
-            let templ = ListTempl { extras: views };
-            match templ.try_to_html().map_err(extra::Error::any) {
-                Ok(html) => Html(html).into_response(),
-                Err(err) => create_error_response(err).into_response(),
-            }
-        }
-    }
+    Json(views).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -41,7 +31,7 @@ pub struct CreateBody {
     pub price: u64,
 }
 
-pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> impl IntoResponse {
+pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> Response {
     let input = CreateInput {
         name: body.name,
         price: body.price,
@@ -64,7 +54,7 @@ pub struct DeletePath {
     pub id: String,
 }
 
-pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> impl IntoResponse {
+pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> Response {
     let input = DeleteInput { id: path.id };
     let mut service = ExtraService::new(PgExtras::new(ctx.pool));
     let deleted_product_extra = match service.delete(input).await {
@@ -93,7 +83,7 @@ pub async fn update(
     State(ctx): State<Context>,
     Path(path): Path<UpdatePath>,
     Json(body): Json<UpdateBody>,
-) -> impl IntoResponse {
+) -> Response {
     let input = UpdateInput {
         id: path.id,
         name: body.name,
