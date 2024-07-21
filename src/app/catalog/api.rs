@@ -1,7 +1,6 @@
 use axum::extract::{Json, Path, Query, State};
-use axum::http::header;
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse};
+use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 
 use domain::catalog;
@@ -18,7 +17,7 @@ pub struct CreateBody {
     pub description: Option<String>,
 }
 
-pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> impl IntoResponse {
+pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> Response {
     let input = CreateInput {
         name: body.name,
         description: body.description,
@@ -41,7 +40,7 @@ pub struct DeletePath {
     pub id: String,
 }
 
-pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> impl IntoResponse {
+pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> Response {
     let input = DeleteInput { id: path.id };
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let deleted_product_catalog = match service.delete(input).await {
@@ -60,7 +59,7 @@ pub struct FindPath {
     pub id: String,
 }
 
-pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> impl IntoResponse {
+pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> Response {
     let input = FindInput { id: path.id };
     let service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let found_product_catalog = match service.find(input).await {
@@ -80,11 +79,7 @@ pub struct ListQuery {
     pub limit: Option<u64>,
 }
 
-pub async fn list(
-    State(ctx): State<Context>,
-    Query(query): Query<ListQuery>,
-    headers: header::HeaderMap,
-) -> impl IntoResponse {
+pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) -> Response {
     let input = ListInput {
         page: query.page.unwrap_or(1),
         limit: query.limit.unwrap_or(10),
@@ -95,19 +90,12 @@ pub async fn list(
         Ok(pagination) => pagination,
         Err(err) => {
             eprintln!("List product catalogs error: {err:?}");
-            // TODO: create error with html response
             return create_error_response(err).into_response();
         }
     };
 
     let view = PaginationView::new(&pagination);
-    match headers.get(header::ACCEPT).map(header::HeaderValue::to_str) {
-        Some(Ok("application/json")) => Json(view).into_response(),
-        Some(_) | None => match view.try_into_html().map_err(catalog::Error::any) {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => create_error_response(err).into_response(),
-        },
-    }
+    Json(view).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -125,7 +113,7 @@ pub async fn update(
     State(ctx): State<Context>,
     Path(path): Path<UpdatePath>,
     Json(body): Json<UpdateBody>,
-) -> impl IntoResponse {
+) -> Response {
     let input = UpdateInput {
         id: path.id,
         name: body.name,

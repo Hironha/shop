@@ -50,15 +50,16 @@ impl<'a> PaginationView<'a> {
             items: pagination.items.iter().map(CatalogView::new).collect(),
         }
     }
-
-    pub fn try_into_html(self) -> Result<String, Box<dyn std::error::Error>> {
-        let templ = ListTempl { pagination: self };
-        templ.render().map_err(Box::from)
-    }
 }
 
 #[derive(Clone, Debug, Template)]
 #[template(path = "./pages/catalogs.j2")]
-struct ListTempl<'a> {
+pub struct ListTempl<'a> {
     pub pagination: PaginationView<'a>,
+}
+
+impl<'a> ListTempl<'a> {
+    pub fn try_into_html(self) -> Result<String, Box<dyn std::error::Error>> {
+        self.render().map_err(Box::from)
+    }
 }
