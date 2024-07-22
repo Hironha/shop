@@ -2,7 +2,7 @@ mod dto;
 
 pub use dto::{CreateInput, DeleteInput, FindInput, ListInput, UpdateInput};
 
-use domain::catalog::{self, CatalogProducts};
+use domain::catalog;
 
 #[derive(Clone, Debug)]
 pub struct CatalogService<T> {
@@ -74,7 +74,7 @@ impl<T: catalog::Repository> CatalogService<T> {
 
         self.catalogs.update(&updated_catalog).await?;
 
-        Ok(CatalogProducts::new(
+        Ok(catalog::CatalogProducts::new(
             updated_catalog,
             catalog_products.products,
         ))

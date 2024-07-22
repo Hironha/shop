@@ -36,8 +36,8 @@ impl<'a> CatalogProductsView<'a> {
                 .description()
                 .map(catalog::Description::as_str),
             products,
-            created_at: metadata.created_at().format(&Rfc3339).unwrap(),
-            updated_at: metadata.updated_at().format(&Rfc3339).unwrap(),
+            created_at: metadata.created_at().format(&Rfc3339).unwrap_or_default(),
+            updated_at: metadata.updated_at().format(&Rfc3339).unwrap_or_default(),
         }
     }
 }
@@ -62,6 +62,31 @@ impl<'a> PaginationView<'a> {
                 .map(CatalogProductsView::new)
                 .collect(),
         }
+    }
+
+    pub fn pages(&self) -> Vec<u64> {
+        let next = (0..=self.remaining_pages()).map(|n| n + self.page).take(3);
+        let prev = (1..self.page).take(2);
+        prev.chain(next).collect()
+    }
+
+    pub fn has_previous_page(&self) -> bool {
+        self.page > 1
+    }
+
+    pub fn has_next_page(&self) -> bool {
+        self.remaining_pages() > 0
+    }
+
+    pub fn remaining_items(&self) -> u64 {
+        let len = u64::try_from(self.items.len()).unwrap_or(0);
+        let shown = self.page.saturating_sub(1) * self.page + len;
+        self.count - shown
+    }
+
+    pub fn remaining_pages(&self) -> u64 {
+        let pages = self.count.div_ceil(self.limit);
+        pages.saturating_sub(self.page)
     }
 }
 
