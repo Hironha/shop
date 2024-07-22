@@ -30,8 +30,8 @@ create table if not exists product (
     created_at timestamptz not null,
     updated_at timestamptz not null,
 
-    constraint pk_product primary key (id, catalog_id),
-    constraint ak_product_name unique (name),
+    constraint pk_product primary key (id),
+    constraint ak_product_name unique (name, catalog_id),
     constraint fk_product_catalog_id 
         foreign key (catalog_id) references catalog (id) on delete cascade
 );
