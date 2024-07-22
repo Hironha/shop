@@ -1,6 +1,6 @@
 use askama::Template;
 use serde::Serialize;
-use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 use uuid::Uuid;
 
 use domain::catalog;
@@ -13,15 +13,21 @@ pub struct CatalogProductsView<'a> {
     pub name: &'a str,
     pub description: Option<&'a str>,
     pub products: Vec<ProductView<'a>>,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
-    #[serde(with = "time::serde::rfc3339")]
-    pub updated_at: OffsetDateTime,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 impl<'a> CatalogProductsView<'a> {
     pub fn new(value: &'a catalog::CatalogProducts) -> Self {
-        let products = value.products.as_slice();
+        let products = value
+            .products
+            .as_slice()
+            .iter()
+            .map(ProductView::new)
+            .collect();
+
+        let metadata = value.catalog.metadata();
+
         Self {
             id: value.catalog.id().uuid(),
             name: value.catalog.name().as_str(),
@@ -29,9 +35,9 @@ impl<'a> CatalogProductsView<'a> {
                 .catalog
                 .description()
                 .map(catalog::Description::as_str),
-            products: products.iter().map(ProductView::new).collect(),
-            created_at: value.catalog.metadata().created_at(),
-            updated_at: value.catalog.metadata().updated_at(),
+            products,
+            created_at: metadata.created_at().format(&Rfc3339).unwrap(),
+            updated_at: metadata.updated_at().format(&Rfc3339).unwrap(),
         }
     }
 }
