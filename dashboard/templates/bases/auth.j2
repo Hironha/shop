@@ -34,6 +34,14 @@
       </ul>
     </aside>
   </div>
+
+  <script>
+    const path = window.location.pathname;
+    const anchor = document.querySelector(`a[href="${path}"]`)
+    if (anchor) {
+      anchor.classList.add("active")
+    }
+  </script>
 </body>
 
 </html>
