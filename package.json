@@ -1,4 +1,10 @@
 {
+  "name": "shop",
+  "version": "0.0.1",
+  "description": "Shop frontend configuration",
+  "scripts": {
+    "dev": "nodemon --watch ./dashboard/templates -e j2 --exec cargo run"
+  },
   "devDependencies": {
     "daisyui": "^4.12.10",
     "nodemon": "^3.1.4",
