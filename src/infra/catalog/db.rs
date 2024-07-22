@@ -4,7 +4,7 @@ use sqlx::PgPool;
 
 use domain::catalog;
 
-use super::CatalogModel;
+use super::CatalogWithProductsModel;
 
 #[derive(Clone, Debug)]
 pub struct PgCatalogs {
@@ -47,7 +47,7 @@ impl catalog::Repository for PgCatalogs {
         Ok(())
     }
 
-    async fn delete(&self, id: catalog::Id) -> Result<catalog::Catalog, catalog::Error> {
+    async fn delete(&self, id: catalog::Id) -> Result<catalog::CatalogProducts, catalog::Error> {
         let query = queries::DeleteQuery { id };
         let model = query.exec(&self.pool).await.map_err(|err| match err {
             sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
@@ -57,7 +57,7 @@ impl catalog::Repository for PgCatalogs {
         model.try_into_entity().map_err(catalog::Error::any)
     }
 
-    async fn find(&self, id: catalog::Id) -> Result<catalog::Catalog, catalog::Error> {
+    async fn find(&self, id: catalog::Id) -> Result<catalog::CatalogProducts, catalog::Error> {
         let query = queries::FindQuery { id };
         let model = query.exec(&self.pool).await.map_err(|err| match err {
             sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
@@ -85,7 +85,7 @@ impl catalog::Repository for PgCatalogs {
 
         let catalogs = models
             .into_iter()
-            .map(CatalogModel::try_into_entity)
+            .map(CatalogWithProductsModel::try_into_entity)
             .collect::<Result<Vec<_>, _>>()
             .map_err(catalog::Error::any)?;
 

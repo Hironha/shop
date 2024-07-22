@@ -1,24 +1,21 @@
-use super::{Description, Error, Id, Name, Products};
+use super::{Description, Id, Name};
 use crate::metadata;
-use crate::product;
 
 #[derive(Clone, Debug)]
 pub struct Catalog {
     pub(super) id: Id,
     pub(super) name: Name,
     pub(super) description: Option<Description>,
-    pub(super) products: Products,
     pub(super) metadata: metadata::Metadata,
 }
 
 impl Catalog {
     #[must_use]
-    pub fn new(name: Name, description: Option<Description>, products: Products) -> Self {
+    pub fn new(name: Name, description: Option<Description>) -> Self {
         Self {
             id: Id::new(),
             name,
             description,
-            products,
             metadata: metadata::Metadata::new(),
         }
     }
@@ -29,7 +26,6 @@ impl Catalog {
             id: config.id,
             name: config.name,
             description: config.description,
-            products: config.products,
             metadata: config.metadata,
         }
     }
@@ -50,22 +46,8 @@ impl Catalog {
     }
 
     #[must_use]
-    pub fn products(&self) -> &Products {
-        &self.products
-    }
-
-    #[must_use]
     pub fn metadata(&self) -> &metadata::Metadata {
         &self.metadata
-    }
-
-    /// Try adding `product` as a catalog product
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if catalog cannot have more products registered
-    pub fn try_add_product(&mut self, product: product::Product) -> Result<(), Error> {
-        self.products.try_push(product).map_err(Error::from)
     }
 
     #[must_use]
@@ -85,7 +67,6 @@ pub struct Config {
     pub id: Id,
     pub name: Name,
     pub description: Option<Description>,
-    pub products: Products,
     pub metadata: metadata::Metadata,
 }
 
@@ -102,12 +83,6 @@ impl Setter {
     #[must_use]
     pub fn description(mut self, description: Option<Description>) -> Self {
         self.0.description = description;
-        self
-    }
-
-    #[must_use]
-    pub fn products(mut self, products: Products) -> Self {
-        self.0.products = products;
         self
     }
 

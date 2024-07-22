@@ -2,7 +2,7 @@ mod dto;
 
 pub use dto::{CreateInput, DeleteInput, FindInput, ListInput, UpdateInput};
 
-use domain::catalog;
+use domain::catalog::{self, CatalogProducts};
 
 #[derive(Clone, Debug)]
 pub struct CatalogService<T> {
@@ -14,27 +14,32 @@ impl<T: catalog::Repository> CatalogService<T> {
         Self { catalogs }
     }
 
-    pub async fn create(&mut self, input: CreateInput) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn create(
+        &mut self,
+        input: CreateInput,
+    ) -> Result<catalog::CatalogProducts, catalog::Error> {
         let name = catalog::Name::new(input.name)?;
         let description = input
             .description
             .map(catalog::Description::new)
             .transpose()?;
 
-        let products = catalog::Products::default();
-        let catalog = catalog::Catalog::new(name, description, products);
-
+        let catalog = catalog::Catalog::new(name, description);
         self.catalogs.create(&catalog).await?;
 
-        Ok(catalog)
+        let products = catalog::Products::default();
+        Ok(catalog::CatalogProducts::new(catalog, products))
     }
 
-    pub async fn delete(&mut self, input: DeleteInput) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn delete(
+        &mut self,
+        input: DeleteInput,
+    ) -> Result<catalog::CatalogProducts, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         self.catalogs.delete(id).await
     }
 
-    pub async fn find(&self, input: FindInput) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn find(&self, input: FindInput) -> Result<catalog::CatalogProducts, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         self.catalogs.find(id).await
     }
@@ -48,7 +53,10 @@ impl<T: catalog::Repository> CatalogService<T> {
         self.catalogs.list(query).await
     }
 
-    pub async fn update(&mut self, input: UpdateInput) -> Result<catalog::Catalog, catalog::Error> {
+    pub async fn update(
+        &mut self,
+        input: UpdateInput,
+    ) -> Result<catalog::CatalogProducts, catalog::Error> {
         let id = catalog::Id::parse_str(&input.id)?;
         let name = catalog::Name::new(input.name)?;
         let description = input
@@ -56,8 +64,9 @@ impl<T: catalog::Repository> CatalogService<T> {
             .map(catalog::Description::new)
             .transpose()?;
 
-        let catalog = self.catalogs.find(id).await?;
-        let updated_catalog = catalog
+        let catalog_products = self.catalogs.find(id).await?;
+        let updated_catalog = catalog_products
+            .catalog
             .into_setter()
             .name(name)
             .description(description)
@@ -65,6 +74,9 @@ impl<T: catalog::Repository> CatalogService<T> {
 
         self.catalogs.update(&updated_catalog).await?;
 
-        Ok(updated_catalog)
+        Ok(CatalogProducts::new(
+            updated_catalog,
+            catalog_products.products,
+        ))
     }
 }

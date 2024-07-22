@@ -6,7 +6,7 @@ use serde::Deserialize;
 use domain::catalog;
 
 use super::service::{CatalogService, CreateInput, DeleteInput, FindInput, ListInput, UpdateInput};
-use super::view::{CatalogView, PaginationView};
+use super::view::{CatalogProductsView, PaginationView};
 use crate::app::ApiError;
 use crate::infra::PgCatalogs;
 use crate::Context;
@@ -32,7 +32,7 @@ pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) ->
         }
     };
 
-    Json(CatalogView::new(&created_product_catalog)).into_response()
+    Json(CatalogProductsView::new(&created_product_catalog)).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -51,7 +51,7 @@ pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) ->
         }
     };
 
-    Json(CatalogView::new(&deleted_product_catalog)).into_response()
+    Json(CatalogProductsView::new(&deleted_product_catalog)).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -70,7 +70,7 @@ pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> Res
         }
     };
 
-    Json(CatalogView::new(&found_product_catalog)).into_response()
+    Json(CatalogProductsView::new(&found_product_catalog)).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -129,7 +129,7 @@ pub async fn update(
         }
     };
 
-    Json(CatalogView::new(&updated_product_catalog)).into_response()
+    Json(CatalogProductsView::new(&updated_product_catalog)).into_response()
 }
 
 fn create_error_response(err: catalog::Error) -> impl IntoResponse {

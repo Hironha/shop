@@ -1,10 +1,10 @@
-use super::{Catalog, Error, Id};
+use super::{Catalog, CatalogProducts, Error, Id};
 
 #[allow(async_fn_in_trait)]
 pub trait Repository: Send + Clone {
     async fn create(&mut self, catalog: &Catalog) -> Result<(), Error>;
-    async fn delete(&self, id: Id) -> Result<Catalog, Error>;
-    async fn find(&self, id: Id) -> Result<Catalog, Error>;
+    async fn delete(&self, id: Id) -> Result<CatalogProducts, Error>;
+    async fn find(&self, id: Id) -> Result<CatalogProducts, Error>;
     async fn list(&self, query: ListQuery) -> Result<Pagination, Error>;
     async fn update(&mut self, catalog: &Catalog) -> Result<(), Error>;
 }
@@ -20,5 +20,5 @@ pub struct Pagination {
     pub count: u64,
     pub page: u64,
     pub limit: u64,
-    pub items: Vec<Catalog>,
+    pub items: Vec<CatalogProducts>,
 }

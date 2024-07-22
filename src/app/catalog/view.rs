@@ -8,7 +8,7 @@ use domain::catalog;
 use crate::app::product::view::ProductView;
 
 #[derive(Clone, Debug, Serialize)]
-pub struct CatalogView<'a> {
+pub struct CatalogProductsView<'a> {
     pub id: Uuid,
     pub name: &'a str,
     pub description: Option<&'a str>,
@@ -19,16 +19,19 @@ pub struct CatalogView<'a> {
     pub updated_at: OffsetDateTime,
 }
 
-impl<'a> CatalogView<'a> {
-    pub fn new(entity: &'a catalog::Catalog) -> Self {
-        let products = entity.products().as_slice();
+impl<'a> CatalogProductsView<'a> {
+    pub fn new(value: &'a catalog::CatalogProducts) -> Self {
+        let products = value.products.as_slice();
         Self {
-            id: entity.id().uuid(),
-            name: entity.name().as_str(),
-            description: entity.description().map(catalog::Description::as_str),
+            id: value.catalog.id().uuid(),
+            name: value.catalog.name().as_str(),
+            description: value
+                .catalog
+                .description()
+                .map(catalog::Description::as_str),
             products: products.iter().map(ProductView::new).collect(),
-            created_at: entity.metadata().created_at(),
-            updated_at: entity.metadata().updated_at(),
+            created_at: value.catalog.metadata().created_at(),
+            updated_at: value.catalog.metadata().updated_at(),
         }
     }
 }
@@ -38,7 +41,7 @@ pub struct PaginationView<'a> {
     pub count: u64,
     pub page: u64,
     pub limit: u64,
-    pub items: Vec<CatalogView<'a>>,
+    pub items: Vec<CatalogProductsView<'a>>,
 }
 
 impl<'a> PaginationView<'a> {
@@ -47,7 +50,11 @@ impl<'a> PaginationView<'a> {
             count: pagination.count,
             page: pagination.page,
             limit: pagination.limit,
-            items: pagination.items.iter().map(CatalogView::new).collect(),
+            items: pagination
+                .items
+                .iter()
+                .map(CatalogProductsView::new)
+                .collect(),
         }
     }
 }

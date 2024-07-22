@@ -9,7 +9,7 @@ use domain::metadata;
 use crate::infra::product::ProductModel;
 
 #[derive(Clone, Debug, FromRow, Deserialize)]
-pub struct CatalogModel {
+pub struct CatalogWithProductsModel {
     pub id: Uuid,
     pub name: String,
     pub description: Option<String>,
@@ -20,8 +20,10 @@ pub struct CatalogModel {
     pub updated_at: OffsetDateTime,
 }
 
-impl CatalogModel {
-    pub fn try_into_entity(self) -> Result<catalog::Catalog, Box<dyn std::error::Error>> {
+impl CatalogWithProductsModel {
+    pub fn try_into_entity(
+        self,
+    ) -> Result<catalog::CatalogProducts, Box<dyn std::error::Error>> {
         let name = catalog::Name::new(self.name)?;
         let description = self
             .description
@@ -38,14 +40,13 @@ impl CatalogModel {
         let products = catalog::Products::new(products)?;
 
         let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
-        let product_catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::Config {
             id: catalog::Id::from(self.id),
             name,
             description,
-            products,
             metadata,
         });
 
-        Ok(product_catalog)
+        Ok(catalog::CatalogProducts::new(catalog, products))
     }
 }

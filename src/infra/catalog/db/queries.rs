@@ -2,7 +2,7 @@ use sqlx::PgExecutor;
 
 use domain::catalog;
 
-use crate::infra::catalog::CatalogModel;
+use crate::infra::catalog::CatalogWithProductsModel;
 
 #[derive(Clone, Debug)]
 pub(super) struct CreateQuery<'a> {
@@ -42,7 +42,10 @@ pub(super) struct DeleteQuery {
 }
 
 impl DeleteQuery {
-    pub(super) async fn exec(self, exec: impl PgExecutor<'_>) -> Result<CatalogModel, sqlx::Error> {
+    pub(super) async fn exec(
+        self,
+        exec: impl PgExecutor<'_>,
+    ) -> Result<CatalogWithProductsModel, sqlx::Error> {
         let sql = include_str!("./sql/delete.sql");
         sqlx::query_as(sql)
             .bind(self.id.uuid())
@@ -57,7 +60,10 @@ pub(super) struct FindQuery {
 }
 
 impl FindQuery {
-    pub(super) async fn exec(self, exec: impl PgExecutor<'_>) -> Result<CatalogModel, sqlx::Error> {
+    pub(super) async fn exec(
+        self,
+        exec: impl PgExecutor<'_>,
+    ) -> Result<CatalogWithProductsModel, sqlx::Error> {
         let sql = include_str!("./sql/find.sql");
         sqlx::query_as(sql)
             .bind(self.id.uuid())
@@ -76,7 +82,7 @@ impl ListQuery {
     pub(super) async fn exec(
         self,
         exec: impl PgExecutor<'_>,
-    ) -> Result<Vec<CatalogModel>, sqlx::Error> {
+    ) -> Result<Vec<CatalogWithProductsModel>, sqlx::Error> {
         let limit = i64::from(self.limit);
         let offset =
             i64::try_from(self.page.saturating_sub(1) * u64::from(self.limit)).unwrap_or_default();
