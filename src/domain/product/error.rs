@@ -107,7 +107,12 @@ pub enum ValidationKind {
     #[error(transparent)]
     ExtraId(extra::IdError),
     #[error(transparent)]
-    Name(NameError),
-    #[error(transparent)]
     Extras(ExtrasError),
+    #[error(
+        "Catalog cannot have more than {len} products",
+        len = catalog::Products::MAX_LEN
+    )]
+    Max,
+    #[error(transparent)]
+    Name(NameError),
 }

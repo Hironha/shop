@@ -58,6 +58,21 @@ impl<'a> CreateQuery<'a> {
 }
 
 #[derive(Clone, Debug)]
+pub(super) struct CountByCatalog {
+    pub(super) catalog_id: catalog::Id,
+}
+
+impl CountByCatalog {
+    pub(super) async fn exec(self, exec: impl PgExecutor<'_>) -> Result<i64, sqlx::Error> {
+        let sql = include_str!("./sql/count_by_catalog.sql");
+        sqlx::query_scalar(sql)
+            .bind(self.catalog_id.uuid())
+            .fetch_one(exec)
+            .await
+    }
+}
+
+#[derive(Clone, Debug)]
 pub(super) struct DeleteQuery {
     pub(super) id: product::Id,
     pub(super) catalog_id: catalog::Id,

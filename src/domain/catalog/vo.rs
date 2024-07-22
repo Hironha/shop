@@ -118,7 +118,7 @@ impl fmt::Display for Description {
 pub struct Products(Vec<product::Product>);
 
 impl Products {
-    pub const MAX_LEN: usize = 64;
+    pub const MAX_LEN: u8 = 64;
 
     /// Try parsing `products` into [`Products`]
     ///
@@ -126,7 +126,7 @@ impl Products {
     ///
     /// Returns an [`Err`] if `products` have more items than allowed
     pub fn new(products: Vec<product::Product>) -> Result<Self, ProductsError> {
-        if products.len() > Self::MAX_LEN {
+        if products.len() > usize::from(Self::MAX_LEN) {
             return Err(ProductsError::Length);
         }
 
@@ -154,7 +154,7 @@ impl Products {
     ///
     /// Returns an [`Err`] if already at maximum capacity
     pub fn try_push(&mut self, product: product::Product) -> Result<(), ProductsError> {
-        if self.0.len() + 1 >= Self::MAX_LEN {
+        if self.0.len() + 1 >= usize::from(Self::MAX_LEN) {
             return Err(ProductsError::Length);
         }
 
