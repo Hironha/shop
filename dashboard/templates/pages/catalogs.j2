@@ -3,8 +3,8 @@
 {% block title %}Catálogos{% endblock title %}
 
 {% block content %}
-<div class="flex flex-col gap-4">
-  <header class="flex flex-col gap-2">
+<div class="flex flex-col gap-6">
+  <section class="flex flex-col gap-2">
     <h1 class="text-2xl">Nome da loja - TODO</h1>
     <div class="breadcrumbs text-sm">
       <ul>
@@ -42,26 +42,58 @@
         </div>
       </div>
     </article>
-  </header>
+  </section>
 
   <main>
-    {% for catalog in pagination.items %}
-    <ul class="flex flex-col gap-4">
-      <p>Nome: {{+ catalog.name }}</p>
-      {% if let Some(description) = catalog.description %}
-      <p>Descrição: {{+ description }}</p>
-      {% endif %}
+    <div class="flex flex-col gap-2">
+      <table class="table table-lg">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Quantidade Produtos</th>
+            <th>Criado em</th>
+          </tr>
+        </thead>
 
-      {% if catalog.products.len() > 0 %}
-      <ul class="flex flex-col gap-4">
-        {% for product in catalog.products %}
-        <li>Nome: {{+ product.name }}</li>
-        <li>Preço: {{+ product.price / 100 }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-    </ul>
-    {% endfor %}
+        <tbody>
+          {% for catalog in pagination.items %}
+          <tr>
+            <td>{{ catalog.name }}</td>
+            <td>
+              {% if let Some(description) = catalog.description %}
+              {{ description }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>{{ catalog.products.len() }}</td>
+            <td data-date="{{ catalog.created_at }}"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="join self-end">
+        <div class="tooltip" data-tip="Anterior">
+          <button class="join-item btn btn-sm">
+            «
+          </button>
+        </div>
+        <button class="join-item btn btn-sm btn-active">{{ pagination.page }}</button>
+        <div class="tooltip" data-tip="Próximo">
+          <button class="join-item btn btn-sm">»</button>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 {% endblock content %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll("td[data-date]")?.forEach(el => {
+    el.textContent = new Date(el.getAttribute("data-date")).toLocaleDateString('pt-br');
+  });
+</script>
+{% endblock scripts %}
