@@ -66,13 +66,27 @@ impl<'a> PaginationView<'a> {
 }
 
 #[derive(Clone, Debug, Template)]
-#[template(path = "./pages/catalogs.j2")]
+#[template(path = "./pages/catalogs/index.j2")]
+pub struct ListPageTempl<'a> {
+    pub pagination: PaginationView<'a>,
+}
+
+impl<'a> ListPageTempl<'a> {
+    pub fn to_html(&self) -> String {
+        // TODO: remove unwrap
+        self.render().unwrap()
+    }
+}
+
+#[derive(Clone, Debug, Template)]
+#[template(path = "./pages/catalogs/table.j2")]
 pub struct ListTempl<'a> {
     pub pagination: PaginationView<'a>,
 }
 
 impl<'a> ListTempl<'a> {
-    pub fn try_into_html(self) -> Result<String, Box<dyn std::error::Error>> {
-        self.render().map_err(Box::from)
+    pub fn to_html(&self) -> String {
+        // TODO: remove unwrap
+        self.render().unwrap()
     }
 }

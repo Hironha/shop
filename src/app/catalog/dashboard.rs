@@ -3,14 +3,23 @@ use axum::response::{Html, IntoResponse};
 use serde::Deserialize;
 
 use super::service::{CatalogService, ListInput};
-use super::view::{ListTempl, PaginationView};
+use super::view::{ListPageTempl, ListTempl, PaginationView};
 use crate::infra::PgCatalogs;
 use crate::Context;
+
+#[derive(Clone, Debug, Deserialize)]
+pub enum ListKind {
+    #[serde(alias = "full")]
+    Full,
+    #[serde(alias = "table")]
+    Table,
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct ListQuery {
     pub page: Option<u64>,
     pub limit: Option<u64>,
+    pub kind: Option<ListKind>,
 }
 
 pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) -> impl IntoResponse {
@@ -31,7 +40,10 @@ pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) ->
     };
 
     let view = PaginationView::new(&pagination);
-    let templ = ListTempl { pagination: view };
-    // TODO: remove unwrap
-    Html(templ.try_into_html().unwrap()).into_response()
+    let html = match query.kind.unwrap_or(ListKind::Full) {
+        ListKind::Full => ListPageTempl { pagination: view }.to_html(),
+        ListKind::Table => ListTempl { pagination: view }.to_html(),
+    };
+
+    Html(html).into_response()
 }

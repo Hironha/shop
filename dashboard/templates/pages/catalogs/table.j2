@@ -1,0 +1,39 @@
+<table class="table table-lg">
+  <thead>
+    <tr>
+      <th>Nome</th>
+      <th>Descrição</th>
+      <th>Quantidade Produtos</th>
+      <th>Criado em</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for catalog in pagination.items %}
+    <tr>
+      <td>{{ catalog.name }}</td>
+      <td>
+        {% if let Some(description) = catalog.description %}
+        {{ description }}
+        {% else %}
+        -
+        {% endif %}
+      </td>
+      <td>{{ catalog.products.len() }}</td>
+      <td data-date="{{ catalog.created_at }}"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="join self-end">
+  <div class="tooltip" data-tip="Anterior">
+    <button class="join-item btn btn-sm">
+      «
+    </button>
+  </div>
+  <button class="join-item btn btn-sm btn-active">{{ pagination.page }}</button>
+  <div class="tooltip" data-tip="Próximo">
+    <button class="join-item btn btn-sm">»</button>
+  </div>
+</div>
