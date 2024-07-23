@@ -64,18 +64,15 @@ impl<T: catalog::Repository> CatalogService<T> {
             .map(catalog::Description::new)
             .transpose()?;
 
-        let catalog_products = self.catalogs.find(id).await?;
-        let updated_catalog = catalog_products
-            .catalog
-            .into_setter()
-            .name(name)
-            .description(description)
-            .commit();
+        let mut catalog_products = self.catalogs.find(id).await?;
+        catalog_products.catalog.name = name;
+        catalog_products.catalog.description = description;
+        catalog_products.catalog.set_updated();
 
-        self.catalogs.update(&updated_catalog).await?;
+        self.catalogs.update(&catalog_products.catalog).await?;
 
         Ok(catalog::CatalogProducts::new(
-            updated_catalog,
+            catalog_products.catalog,
             catalog_products.products,
         ))
     }

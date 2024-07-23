@@ -30,10 +30,11 @@ impl<'a> CatalogProductsView<'a> {
 
         Self {
             id: value.catalog.id().uuid(),
-            name: value.catalog.name().as_str(),
+            name: value.catalog.name.as_str(),
             description: value
                 .catalog
-                .description()
+                .description
+                .as_ref()
                 .map(catalog::Description::as_str),
             products,
             created_at: metadata.created_at().format(&Rfc3339).unwrap_or_default(),

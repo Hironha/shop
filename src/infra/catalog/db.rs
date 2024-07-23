@@ -37,7 +37,7 @@ impl catalog::Repository for PgCatalogs {
             if Self::is_pk_error(&err) {
                 catalog::Error::id_conflict(catalog.id())
             } else if Self::is_ak_name_error(&err) {
-                let name = catalog.name().clone();
+                let name = catalog.name.clone();
                 catalog::Error::name_conflict(name)
             } else {
                 catalog::Error::any(err)
@@ -103,7 +103,7 @@ impl catalog::Repository for PgCatalogs {
             if matches!(err, sqlx::Error::RowNotFound) {
                 catalog::Error::id_conflict(catalog.id())
             } else if Self::is_ak_name_error(&err) {
-                catalog::Error::name_conflict(catalog.name().clone())
+                catalog::Error::name_conflict(catalog.name.clone())
             } else {
                 catalog::Error::any(err)
             }

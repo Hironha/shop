@@ -14,8 +14,13 @@ impl<'a> CreateQuery<'a> {
         let sql = include_str!("./sql/create.sql");
         sqlx::query(sql)
             .bind(self.catalog.id().uuid())
-            .bind(self.catalog.name().as_str())
-            .bind(self.catalog.description().map(catalog::Description::as_str))
+            .bind(self.catalog.name.as_str())
+            .bind(
+                self.catalog
+                    .description
+                    .as_ref()
+                    .map(catalog::Description::as_str),
+            )
             .bind(self.catalog.metadata().created_at())
             .bind(self.catalog.metadata().updated_at())
             .execute(exec)
@@ -105,8 +110,13 @@ impl<'a> UpdateQuery<'a> {
     pub(super) async fn exec(self, exec: impl PgExecutor<'a>) -> Result<(), sqlx::Error> {
         let sql = include_str!("./sql/update.sql");
         let result = sqlx::query(sql)
-            .bind(self.catalog.name().as_str())
-            .bind(self.catalog.description().map(catalog::Description::as_str))
+            .bind(self.catalog.name.as_str())
+            .bind(
+                self.catalog
+                    .description
+                    .as_ref()
+                    .map(catalog::Description::as_str),
+            )
             .bind(self.catalog.metadata().updated_at())
             .bind(self.catalog.id().uuid())
             .execute(exec)
