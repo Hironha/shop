@@ -58,7 +58,7 @@ impl product::Repository for PgProducts {
             if Self::is_pk_error(&err) {
                 product::Error::id_conflict(product.id())
             } else if Self::is_ak_name_error(&err) {
-                product::Error::name_conflict(product.name().clone())
+                product::Error::name_conflict(product.name.clone())
             } else if Self::is_fk_catalog_id_error(&err) {
                 product::Error::catalog_not_found(product.catalog_id())
             } else {
@@ -68,7 +68,7 @@ impl product::Repository for PgProducts {
 
         let bind_extras_query = queries::BindExtrasQuery {
             id: product.id(),
-            extras: product.extras().as_slice(),
+            extras: product.extras.as_slice(),
         };
 
         bind_extras_query
@@ -115,7 +115,7 @@ impl product::Repository for PgProducts {
             if matches!(err, sqlx::Error::RowNotFound) {
                 product::Error::id_not_found(product.id(), product.catalog_id())
             } else if Self::is_ak_name_error(&err) {
-                product::Error::name_conflict(product.name().clone())
+                product::Error::name_conflict(product.name.clone())
             } else {
                 product::Error::any(err)
             }
@@ -123,7 +123,7 @@ impl product::Repository for PgProducts {
 
         let bind_extras_query = queries::BindExtrasQuery {
             id: product.id(),
-            extras: product.extras().as_slice(),
+            extras: product.extras.as_slice(),
         };
 
         bind_extras_query
@@ -133,7 +133,7 @@ impl product::Repository for PgProducts {
 
         let unbind_extras_query = queries::UnbindExtrasQuery {
             id: product.id(),
-            extras: product.extras().as_slice(),
+            extras: product.extras.as_slice(),
         };
 
         unbind_extras_query

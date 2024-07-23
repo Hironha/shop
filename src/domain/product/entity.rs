@@ -6,9 +6,9 @@ use crate::metadata;
 pub struct Product {
     pub(super) id: Id,
     pub(super) catalog_id: catalog::Id,
-    pub(super) name: Name,
-    pub(super) price: Price,
-    pub(super) extras: Extras,
+    pub name: Name,
+    pub price: Price,
+    pub extras: Extras,
     pub(super) metadata: metadata::Metadata,
 }
 
@@ -48,28 +48,12 @@ impl Product {
     }
 
     #[must_use]
-    pub fn name(&self) -> &Name {
-        &self.name
-    }
-
-    #[must_use]
-    pub fn price(&self) -> Price {
-        self.price
-    }
-
-    #[must_use]
-    pub fn extras(&self) -> &Extras {
-        &self.extras
-    }
-
-    #[must_use]
     pub fn metadata(&self) -> &metadata::Metadata {
         &self.metadata
     }
 
-    #[must_use]
-    pub fn into_setter(self) -> Setter {
-        Setter(self)
+    pub fn set_updated(&mut self) {
+        self.metadata.update();
     }
 }
 
@@ -81,33 +65,4 @@ pub struct Config {
     pub price: Price,
     pub extras: Option<Extras>,
     pub metadata: metadata::Metadata,
-}
-
-#[derive(Clone, Debug)]
-pub struct Setter(Product);
-
-impl Setter {
-    #[must_use]
-    pub fn name(mut self, name: Name) -> Self {
-        self.0.name = name;
-        self
-    }
-
-    #[must_use]
-    pub fn price(mut self, price: Price) -> Self {
-        self.0.price = price;
-        self
-    }
-
-    #[must_use]
-    pub fn extras(mut self, extras: Extras) -> Self {
-        self.0.extras = extras;
-        self
-    }
-
-    #[must_use]
-    pub fn commit(mut self) -> Product {
-        self.0.metadata.update();
-        self.0
-    }
 }

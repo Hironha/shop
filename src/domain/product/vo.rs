@@ -75,6 +75,11 @@ impl Name {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    #[must_use]
+    pub fn take(self) -> String {
+        self.0
+    }
 }
 
 impl fmt::Display for Name {
@@ -115,6 +120,11 @@ impl Extras {
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    #[must_use]
+    pub fn take(self) -> Vec<extra::Extra> {
+        self.0
     }
 }
 

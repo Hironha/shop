@@ -46,8 +46,8 @@ impl<'a> CreateQuery<'a> {
         sqlx::query(sql)
             .bind(self.product.id().uuid())
             .bind(self.product.catalog_id().uuid())
-            .bind(self.product.name().as_str())
-            .bind(self.product.price().decimal())
+            .bind(self.product.name.as_str())
+            .bind(self.product.price.decimal())
             .bind(self.product.metadata().created_at())
             .bind(self.product.metadata().updated_at())
             .execute(exec)
@@ -140,8 +140,8 @@ impl<'a> UpdateQuery<'a> {
     pub async fn exec(self, exec: impl PgExecutor<'a>) -> Result<(), sqlx::Error> {
         let update_sql = include_str!("./sql/update.sql");
         let result = sqlx::query(update_sql)
-            .bind(self.product.name().as_str())
-            .bind(self.product.price().decimal())
+            .bind(self.product.name.as_str())
+            .bind(self.product.price.decimal())
             .bind(self.product.metadata().updated_at())
             .bind(self.product.id().uuid())
             .bind(self.product.catalog_id().uuid())

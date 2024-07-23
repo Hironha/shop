@@ -21,15 +21,15 @@ impl<'a> ProductView<'a> {
         use rust_decimal::prelude::ToPrimitive;
 
         // TODO: maybe converting to cents is not really a good idea
-        let price = product.price().decimal().to_u64().unwrap_or_default();
+        let price = product.price.decimal().to_u64().unwrap_or_default();
         let price_cents = price * 100;
 
         Self {
             id: product.id().uuid(),
-            name: product.name().as_str(),
+            name: product.name.as_str(),
             price: price_cents,
             extras: product
-                .extras()
+                .extras
                 .as_slice()
                 .iter()
                 .map(ExtraView::new)

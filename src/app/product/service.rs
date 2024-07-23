@@ -53,25 +53,23 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
 
     pub async fn update(&mut self, input: UpdateInput) -> Result<product::Product, product::Error> {
         let id = product::Id::parse_str(&input.id)?;
-        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
         let name = product::Name::new(input.name)?;
+        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
         let extras_ids = Self::parse_extras_ids(&input.extras_ids.take())?;
 
-        let product = self.products.find(id, catalog_id).await?;
+        let mut product = self.products.find(id, catalog_id).await?;
 
         let extras = self.find_extras(&extras_ids).await?;
         let product_extras = product::Extras::new(extras)?;
 
-        let updated_product = product
-            .into_setter()
-            .name(name)
-            .price(product::Price::from_cents(input.price))
-            .extras(product_extras)
-            .commit();
+        product.name = name;
+        product.price = product::Price::from_cents(input.price);
+        product.extras = product_extras;
+        product.set_updated();
 
-        self.products.update(&updated_product).await?;
+        self.products.update(&product).await?;
 
-        Ok(updated_product)
+        Ok(product)
     }
 
     async fn find_extras(

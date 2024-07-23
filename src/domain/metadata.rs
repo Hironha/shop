@@ -22,13 +22,13 @@ impl Metadata {
     /// # Errors
     ///
     /// Returns an [`Err`] if `created_at` is bigger than `updated_at`, since it's
-    /// impossible to be updated but no created
+    /// impossible to be updated but not created
     pub fn configured(
         created_at: OffsetDateTime,
         updated_at: OffsetDateTime,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, ConfigError> {
         if created_at > updated_at {
-            return Err(Error::Inconsistent);
+            return Err(ConfigError);
         }
 
         Ok(Self {
@@ -59,7 +59,5 @@ impl Default for Metadata {
 }
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
-pub enum Error {
-    #[error("Metadata created at cannot be bigger than updated at")]
-    Inconsistent,
-}
+#[error("Metadata created at cannot be bigger than updated at")]
+pub struct ConfigError;
