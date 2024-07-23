@@ -50,7 +50,7 @@ impl extra::Repository for PgExtras {
             if Self::is_pk_error(&err) {
                 extra::Error::id_conflict(extra.id())
             } else if Self::is_ak_name_error(&err) {
-                extra::Error::name_conflict(extra.name().clone())
+                extra::Error::name_conflict(extra.name.clone())
             } else {
                 extra::Error::any(err)
             }
@@ -105,7 +105,7 @@ impl extra::Repository for PgExtras {
             if matches!(err, sqlx::Error::RowNotFound) {
                 extra::Error::NotFound(extra.id())
             } else if Self::is_ak_name_error(&err) {
-                extra::Error::name_conflict(extra.name().clone())
+                extra::Error::name_conflict(extra.name.clone())
             } else {
                 extra::Error::any(err)
             }

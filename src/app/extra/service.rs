@@ -2,7 +2,7 @@ mod dto;
 
 pub use dto::{CreateInput, DeleteInput, UpdateInput};
 
-use domain::extra::{Error, Id, Name, Price, Extra, Repository};
+use domain::extra::{Error, Extra, Id, Name, Price, Repository};
 
 #[derive(Clone, Debug)]
 pub struct ExtraService<T> {
@@ -36,15 +36,13 @@ impl<T: Repository> ExtraService<T> {
         let id = Id::parse_str(&input.id)?;
         let name = Name::new(input.name)?;
 
-        let extra = self.extras.find(id).await?;
-        let updated_extra = extra
-            .into_setter()
-            .name(name)
-            .price(Price::from_cents(input.price))
-            .commit();
+        let mut extra = self.extras.find(id).await?;
+        extra.name = name;
+        extra.price = Price::from_cents(input.price);
+        extra.set_updated();
 
-        self.extras.update(&updated_extra).await?;
+        self.extras.update(&extra).await?;
 
-        Ok(updated_extra)
+        Ok(extra)
     }
 }

@@ -20,12 +20,12 @@ impl<'a> ExtraView<'a> {
 
         let metadata = extra.metadata();
         // TODO: maybe converting to cents is not really a good idea
-        let price = extra.price().decimal().to_u64().unwrap_or_default();
+        let price = extra.price.decimal().to_u64().unwrap_or_default();
         let cents = price * 100;
 
         Self {
             id: extra.id().uuid(),
-            name: extra.name().as_str(),
+            name: extra.name.as_str(),
             price: cents,
             created_at: metadata.created_at().format(&Rfc3339).unwrap_or_default(),
             updated_at: metadata.updated_at().format(&Rfc3339).unwrap_or_default(),

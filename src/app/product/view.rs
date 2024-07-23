@@ -52,18 +52,18 @@ pub struct ExtraView<'a> {
 }
 
 impl<'a> ExtraView<'a> {
-    pub fn new(product_extra: &'a extra::Extra) -> Self {
+    pub fn new(extra: &'a extra::Extra) -> Self {
         use rust_decimal::prelude::ToPrimitive;
 
         // TODO: maybe converting to cents is not really a good idea
-        let price = product_extra.price().decimal().to_u64().unwrap_or_default();
+        let price = extra.price.decimal().to_u64().unwrap_or_default();
         let cents = price * 100;
         Self {
-            id: product_extra.id().uuid(),
-            name: product_extra.name().as_str(),
+            id: extra.id().uuid(),
+            name: extra.name.as_str(),
             price: cents,
-            created_at: product_extra.metadata().created_at(),
-            updated_at: product_extra.metadata().updated_at(),
+            created_at: extra.metadata().created_at(),
+            updated_at: extra.metadata().updated_at(),
         }
     }
 }
