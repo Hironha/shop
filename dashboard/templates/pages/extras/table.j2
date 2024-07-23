@@ -1,0 +1,21 @@
+<div id="extras-table" class="flex flex-col gap-2">
+  <table class="table table-lg">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Preço</th>
+        <th>Criado em</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for extra in extras %}
+      <tr>
+        <td>{{ extra.name }}</td>
+        <td data-price="{{ extra.price }}"></td>
+        <td data-date="{{ extra.created_at }}"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

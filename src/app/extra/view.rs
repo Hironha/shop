@@ -1,6 +1,6 @@
 use askama::Template;
 use serde::Serialize;
-use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 use uuid::Uuid;
 
 use domain::extra::Extra;
@@ -10,31 +10,31 @@ pub struct ExtraView<'a> {
     pub id: Uuid,
     pub name: &'a str,
     pub price: u64,
-    #[serde(with = "time::serde::rfc3339")]
-    pub created_at: OffsetDateTime,
-    #[serde(with = "time::serde::rfc3339")]
-    pub updated_at: OffsetDateTime,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 impl<'a> ExtraView<'a> {
-    pub fn new(entity: &'a Extra) -> Self {
+    pub fn new(extra: &'a Extra) -> Self {
         use rust_decimal::prelude::ToPrimitive;
 
+        let metadata = extra.metadata();
         // TODO: maybe converting to cents is not really a good idea
-        let price = entity.price().decimal().to_u64().unwrap_or_default();
+        let price = extra.price().decimal().to_u64().unwrap_or_default();
         let cents = price * 100;
+
         Self {
-            id: entity.id().uuid(),
-            name: entity.name().as_str(),
+            id: extra.id().uuid(),
+            name: extra.name().as_str(),
             price: cents,
-            created_at: entity.metadata().created_at(),
-            updated_at: entity.metadata().updated_at(),
+            created_at: metadata.created_at().format(&Rfc3339).unwrap_or_default(),
+            updated_at: metadata.updated_at().format(&Rfc3339).unwrap_or_default(),
         }
     }
 }
 
 #[derive(Clone, Debug, Template)]
-#[template(path = "./pages/extras.j2")]
+#[template(path = "./pages/extras/index.j2")]
 pub struct ListTempl<'a> {
     pub extras: Vec<ExtraView<'a>>,
 }

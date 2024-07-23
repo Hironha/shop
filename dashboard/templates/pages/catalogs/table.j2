@@ -21,7 +21,7 @@
           {% endif %}
         </td>
         <td>{{ catalog.products.len() }}</td>
-        <td>{{ catalog.created_at }}</td>
+        <td data-date="{{ catalog.created_at }}"></td>
       </tr>
       {% endfor %}
     </tbody>
