@@ -67,7 +67,7 @@ impl<T: catalog::Repository> CatalogService<T> {
         let mut catalog_products = self.catalogs.find(id).await?;
         catalog_products.catalog.name = name;
         catalog_products.catalog.description = description;
-        catalog_products.catalog.set_updated();
+        catalog_products.catalog.metadata.update();
 
         self.catalogs.update(&catalog_products.catalog).await?;
 

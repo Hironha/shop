@@ -9,7 +9,7 @@ pub struct Product {
     pub name: Name,
     pub price: Price,
     pub extras: Extras,
-    pub(super) metadata: metadata::Metadata,
+    pub metadata: metadata::Metadata,
 }
 
 impl Product {
@@ -45,15 +45,6 @@ impl Product {
     #[must_use]
     pub fn catalog_id(&self) -> catalog::Id {
         self.catalog_id
-    }
-
-    #[must_use]
-    pub fn metadata(&self) -> &metadata::Metadata {
-        &self.metadata
-    }
-
-    pub fn set_updated(&mut self) {
-        self.metadata.update();
     }
 }
 

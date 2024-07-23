@@ -1,6 +1,6 @@
 use askama::Template;
 use serde::Serialize;
-use time::format_description::well_known::Rfc3339;
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 use domain::catalog;
@@ -26,8 +26,6 @@ impl<'a> CatalogProductsView<'a> {
             .map(ProductView::new)
             .collect();
 
-        let metadata = value.catalog.metadata();
-
         Self {
             id: value.catalog.id().uuid(),
             name: value.catalog.name.as_str(),
@@ -37,9 +35,14 @@ impl<'a> CatalogProductsView<'a> {
                 .as_ref()
                 .map(catalog::Description::as_str),
             products,
-            created_at: metadata.created_at().format(&Rfc3339).unwrap_or_default(),
-            updated_at: metadata.updated_at().format(&Rfc3339).unwrap_or_default(),
+            created_at: Self::to_rfc3339(value.catalog.metadata.created_at()),
+            updated_at: Self::to_rfc3339(value.catalog.metadata.updated_at()),
         }
+    }
+
+    fn to_rfc3339(date: OffsetDateTime) -> String {
+        use time::format_description::well_known::Rfc3339;
+        date.format(&Rfc3339).unwrap_or_default()
     }
 }
 

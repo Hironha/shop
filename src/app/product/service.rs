@@ -65,7 +65,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
         product.name = name;
         product.price = product::Price::from_cents(input.price);
         product.extras = product_extras;
-        product.set_updated();
+        product.metadata.update();
 
         self.products.update(&product).await?;
 

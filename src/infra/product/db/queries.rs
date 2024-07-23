@@ -48,8 +48,8 @@ impl<'a> CreateQuery<'a> {
             .bind(self.product.catalog_id().uuid())
             .bind(self.product.name.as_str())
             .bind(self.product.price.decimal())
-            .bind(self.product.metadata().created_at())
-            .bind(self.product.metadata().updated_at())
+            .bind(self.product.metadata.created_at())
+            .bind(self.product.metadata.updated_at())
             .execute(exec)
             .await?;
 
@@ -142,7 +142,7 @@ impl<'a> UpdateQuery<'a> {
         let result = sqlx::query(update_sql)
             .bind(self.product.name.as_str())
             .bind(self.product.price.decimal())
-            .bind(self.product.metadata().updated_at())
+            .bind(self.product.metadata.updated_at())
             .bind(self.product.id().uuid())
             .bind(self.product.catalog_id().uuid())
             .execute(exec)

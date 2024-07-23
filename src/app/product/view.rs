@@ -34,8 +34,8 @@ impl<'a> ProductView<'a> {
                 .iter()
                 .map(ExtraView::new)
                 .collect(),
-            created_at: product.metadata().created_at(),
-            updated_at: product.metadata().updated_at(),
+            created_at: product.metadata.created_at(),
+            updated_at: product.metadata.updated_at(),
         }
     }
 }
@@ -62,8 +62,8 @@ impl<'a> ExtraView<'a> {
             id: extra.id().uuid(),
             name: extra.name.as_str(),
             price: cents,
-            created_at: extra.metadata().created_at(),
-            updated_at: extra.metadata().updated_at(),
+            created_at: extra.metadata.created_at(),
+            updated_at: extra.metadata.updated_at(),
         }
     }
 }

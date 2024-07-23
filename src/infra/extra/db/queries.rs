@@ -29,8 +29,8 @@ impl<'a> CreateQuery<'a> {
             .bind(self.extra.id().uuid())
             .bind(self.extra.name.as_str())
             .bind(self.extra.price.decimal())
-            .bind(self.extra.metadata().created_at())
-            .bind(self.extra.metadata().updated_at())
+            .bind(self.extra.metadata.created_at())
+            .bind(self.extra.metadata.updated_at())
             .execute(exec)
             .await?;
 
@@ -95,7 +95,7 @@ impl<'a> UpdateQuery<'a> {
         let result = sqlx::query(sql)
             .bind(self.extra.name.as_str())
             .bind(self.extra.price.decimal())
-            .bind(self.extra.metadata().updated_at())
+            .bind(self.extra.metadata.updated_at())
             .bind(self.extra.id().uuid())
             .execute(exec)
             .await?;

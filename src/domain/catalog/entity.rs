@@ -6,7 +6,7 @@ pub struct Catalog {
     pub(super) id: Id,
     pub name: Name,
     pub description: Option<Description>,
-    pub(super) metadata: metadata::Metadata,
+    pub metadata: metadata::Metadata,
 }
 
 impl Catalog {
@@ -33,15 +33,6 @@ impl Catalog {
     #[must_use]
     pub fn id(&self) -> Id {
         self.id
-    }
-
-    #[must_use]
-    pub fn metadata(&self) -> &metadata::Metadata {
-        &self.metadata
-    }
-
-    pub fn set_updated(&mut self) {
-        self.metadata.update();
     }
 }
 

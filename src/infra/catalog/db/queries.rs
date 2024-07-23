@@ -21,8 +21,8 @@ impl<'a> CreateQuery<'a> {
                     .as_ref()
                     .map(catalog::Description::as_str),
             )
-            .bind(self.catalog.metadata().created_at())
-            .bind(self.catalog.metadata().updated_at())
+            .bind(self.catalog.metadata.created_at())
+            .bind(self.catalog.metadata.updated_at())
             .execute(exec)
             .await?;
 
@@ -117,7 +117,7 @@ impl<'a> UpdateQuery<'a> {
                     .as_ref()
                     .map(catalog::Description::as_str),
             )
-            .bind(self.catalog.metadata().updated_at())
+            .bind(self.catalog.metadata.updated_at())
             .bind(self.catalog.id().uuid())
             .execute(exec)
             .await?;

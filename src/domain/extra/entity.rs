@@ -6,7 +6,7 @@ pub struct Extra {
     pub(super) id: Id,
     pub name: Name,
     pub price: Price,
-    pub(super) metadata: metadata::Metadata,
+    pub metadata: metadata::Metadata,
 }
 
 impl Extra {
@@ -33,15 +33,6 @@ impl Extra {
     #[must_use]
     pub fn id(&self) -> Id {
         self.id
-    }
-
-    #[must_use]
-    pub fn metadata(&self) -> &metadata::Metadata {
-        &self.metadata
-    }
-
-    pub fn set_updated(&mut self) {
-        self.metadata.update();
     }
 }
 

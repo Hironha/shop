@@ -39,7 +39,7 @@ impl<T: Repository> ExtraService<T> {
         let mut extra = self.extras.find(id).await?;
         extra.name = name;
         extra.price = Price::from_cents(input.price);
-        extra.set_updated();
+        extra.metadata.update();
 
         self.extras.update(&extra).await?;
 
