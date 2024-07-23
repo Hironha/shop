@@ -65,9 +65,9 @@ impl<'a> PaginationView<'a> {
     }
 
     pub fn pages(&self) -> Vec<u64> {
-        let next = (0..=self.remaining_pages()).map(|n| n + self.page).take(3);
-        let prev = (1..self.page).take(2);
-        prev.chain(next).collect()
+        let start = self.page.saturating_sub(2).max(1);
+        let end = self.page.saturating_add(self.remaining_pages().min(2));
+        (start..=end).collect()
     }
 
     pub fn has_previous_page(&self) -> bool {
@@ -76,12 +76,6 @@ impl<'a> PaginationView<'a> {
 
     pub fn has_next_page(&self) -> bool {
         self.remaining_pages() > 0
-    }
-
-    pub fn remaining_items(&self) -> u64 {
-        let len = u64::try_from(self.items.len()).unwrap_or(0);
-        let shown = self.page.saturating_sub(1) * self.page + len;
-        self.count - shown
     }
 
     pub fn remaining_pages(&self) -> u64 {
