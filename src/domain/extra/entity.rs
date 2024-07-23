@@ -29,7 +29,9 @@ impl Extra {
             metadata: config.metadata,
         }
     }
+}
 
+impl Extra {
     #[must_use]
     pub fn id(&self) -> Id {
         self.id

@@ -29,7 +29,9 @@ impl Catalog {
             metadata: config.metadata,
         }
     }
+}
 
+impl Catalog {
     #[must_use]
     pub fn id(&self) -> Id {
         self.id

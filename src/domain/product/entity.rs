@@ -36,7 +36,9 @@ impl Product {
             metadata: config.metadata,
         }
     }
+}
 
+impl Product {
     #[must_use]
     pub fn id(&self) -> Id {
         self.id

@@ -24,7 +24,7 @@ impl ExtraModel {
         let product_extra = extra::Extra::config(extra::Config {
             id: extra::Id::from(self.id),
             name,
-            price: extra::Price::from_decimal(self.price),
+            price: extra::Price::new(self.price),
             metadata,
         });
 

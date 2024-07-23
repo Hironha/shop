@@ -36,7 +36,9 @@ impl Metadata {
             updated_at,
         })
     }
+}
 
+impl Metadata {
     #[must_use]
     pub fn created_at(&self) -> OffsetDateTime {
         self.created_at

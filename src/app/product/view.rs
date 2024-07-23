@@ -18,22 +18,12 @@ pub struct ProductView<'a> {
 
 impl<'a> ProductView<'a> {
     pub fn new(product: &'a product::Product) -> Self {
-        use rust_decimal::prelude::ToPrimitive;
-
-        // TODO: maybe converting to cents is not really a good idea
-        let price = product.price.decimal().to_u64().unwrap_or_default();
-        let price_cents = price * 100;
-
         Self {
             id: product.id().uuid(),
             name: product.name.as_str(),
-            price: price_cents,
-            extras: product
-                .extras
-                .as_slice()
-                .iter()
-                .map(ExtraView::new)
-                .collect(),
+            // TODO: maybe converting to cents is not really a good idea
+            price: product.price.to_cents(),
+            extras: product.extras.iter().map(ExtraView::new).collect(),
             created_at: product.metadata.created_at(),
             updated_at: product.metadata.updated_at(),
         }
@@ -53,15 +43,11 @@ pub struct ExtraView<'a> {
 
 impl<'a> ExtraView<'a> {
     pub fn new(extra: &'a extra::Extra) -> Self {
-        use rust_decimal::prelude::ToPrimitive;
-
-        // TODO: maybe converting to cents is not really a good idea
-        let price = extra.price.decimal().to_u64().unwrap_or_default();
-        let cents = price * 100;
         Self {
             id: extra.id().uuid(),
             name: extra.name.as_str(),
-            price: cents,
+            // TODO: maybe converting to cents is not really a good idea
+            price: extra.price.to_cents(),
             created_at: extra.metadata.created_at(),
             updated_at: extra.metadata.updated_at(),
         }

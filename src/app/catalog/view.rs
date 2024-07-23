@@ -19,13 +19,6 @@ pub struct CatalogProductsView<'a> {
 
 impl<'a> CatalogProductsView<'a> {
     pub fn new(value: &'a catalog::CatalogProducts) -> Self {
-        let products = value
-            .products
-            .as_slice()
-            .iter()
-            .map(ProductView::new)
-            .collect();
-
         Self {
             id: value.catalog.id().uuid(),
             name: value.catalog.name.as_str(),
@@ -34,7 +27,7 @@ impl<'a> CatalogProductsView<'a> {
                 .description
                 .as_ref()
                 .map(catalog::Description::as_str),
-            products,
+            products: value.products.iter().map(ProductView::new).collect(),
             created_at: Self::to_rfc3339(value.catalog.metadata.created_at()),
             updated_at: Self::to_rfc3339(value.catalog.metadata.updated_at()),
         }
@@ -67,7 +60,9 @@ impl<'a> PaginationView<'a> {
                 .collect(),
         }
     }
+}
 
+impl<'a> PaginationView<'a> {
     pub fn pages(&self) -> Vec<u64> {
         let start = self.page.saturating_sub(2).max(1);
         let end = self.page.saturating_add(self.remaining_pages().min(2));

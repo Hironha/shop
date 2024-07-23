@@ -13,11 +13,6 @@ impl Id {
         Self(Uuid::now_v7())
     }
 
-    #[must_use]
-    pub fn uuid(&self) -> Uuid {
-        self.0
-    }
-
     /// Try parsing a `value` into [`Id`]
     ///
     /// # Errors
@@ -28,6 +23,13 @@ impl Id {
             Ok(uuid) => Ok(Self(uuid)),
             Err(_) => Err(IdError::Parse(Box::from(value))),
         }
+    }
+}
+
+impl Id {
+    #[must_use]
+    pub fn uuid(&self) -> Uuid {
+        self.0
     }
 }
 
@@ -68,7 +70,9 @@ impl Name {
 
         Ok(Self(name))
     }
+}
 
+impl Name {
     #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
@@ -86,25 +90,35 @@ pub struct Price(Decimal);
 
 impl Price {
     #[must_use]
-    pub fn from_cents(value: u64) -> Self {
-        let num = i64::try_from(value).unwrap_or(i64::MAX);
-        Self(Decimal::new(num, 2))
-    }
-
-    #[must_use]
-    pub fn from_decimal(value: Decimal) -> Self {
+    pub fn new(value: Decimal) -> Self {
         Self(value.trunc_with_scale(2))
     }
 
     #[must_use]
+    pub fn from_cents(value: u64) -> Self {
+        let num = i64::try_from(value).unwrap_or(i64::MAX);
+        Self(Decimal::new(num, 2))
+    }
+}
+
+impl Price {
+    #[must_use]
     pub fn decimal(&self) -> Decimal {
         self.0
+    }
+
+    // TODO: implementation is wrong, fix later
+    #[must_use]
+    pub fn to_cents(&self) -> u64 {
+        use rust_decimal::prelude::ToPrimitive;
+        let price = self.0.to_u64().unwrap_or_default();
+        price * 100
     }
 }
 
 impl From<Decimal> for Price {
     fn from(value: Decimal) -> Self {
-        Self::from_decimal(value)
+        Self::new(value)
     }
 }
 

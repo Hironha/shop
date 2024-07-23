@@ -25,7 +25,9 @@ impl Id {
             Err(_) => Err(ParseIdError(Box::from(value))),
         }
     }
+}
 
+impl Id {
     #[must_use]
     pub fn uuid(&self) -> Uuid {
         self.0
@@ -69,7 +71,9 @@ impl Name {
 
         Ok(Self(name))
     }
+}
 
+impl Name {
     #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
@@ -101,7 +105,9 @@ impl Description {
 
         Ok(Self(description))
     }
+}
 
+impl Description {
     #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
@@ -132,7 +138,9 @@ impl Products {
 
         Ok(Self(products))
     }
+}
 
+impl Products {
     #[must_use]
     pub fn as_slice(&self) -> &[product::Product] {
         &self.0
@@ -143,23 +151,13 @@ impl Products {
         self.0.is_empty()
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &product::Product> {
+        self.0.iter()
+    }
+
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
-    }
-
-    /// Try adding `product`
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if already at maximum capacity
-    pub fn try_push(&mut self, product: product::Product) -> Result<(), ProductsError> {
-        if self.0.len() + 1 >= usize::from(Self::MAX_LEN) {
-            return Err(ProductsError::Length);
-        }
-
-        self.0.push(product);
-        Ok(())
     }
 }
 
