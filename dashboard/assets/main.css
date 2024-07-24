@@ -2536,4 +2536,9 @@ html:has(.drawer-toggle:checked) {
   .lg\:hidden {
     display: none;
   }
+
+  .lg\:px-10 {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
 }
