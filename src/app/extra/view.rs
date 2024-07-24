@@ -16,16 +16,10 @@ pub struct ExtraView<'a> {
 
 impl<'a> ExtraView<'a> {
     pub fn new(extra: &'a Extra) -> Self {
-        use rust_decimal::prelude::ToPrimitive;
-
-        // TODO: maybe converting to cents is not really a good idea
-        let price = extra.price.decimal().to_u64().unwrap_or_default();
-        let cents = price * 100;
-
         Self {
             id: extra.id().uuid(),
             name: extra.name.as_str(),
-            price: cents,
+            price: extra.price.to_cents(),
             created_at: Self::to_rfc3339(extra.metadata.created_at()),
             updated_at: Self::to_rfc3339(extra.metadata.updated_at()),
         }

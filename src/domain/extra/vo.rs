@@ -107,12 +107,12 @@ impl Price {
         self.0
     }
 
-    // TODO: implementation is wrong, fix later
+    // TODO: maybe i should return an error here and improve performance
     #[must_use]
     pub fn to_cents(&self) -> u64 {
         use rust_decimal::prelude::ToPrimitive;
-        let price = self.0.to_u64().unwrap_or_default();
-        price * 100
+        let cents = self.0.saturating_mul(Decimal::new(100, 0));
+        cents.to_u64().unwrap_or_default()
     }
 }
 
