@@ -15,6 +15,7 @@ pub struct ProductModel {
     pub catalog_id: Uuid,
     pub name: String,
     pub price: Decimal,
+    pub kind: String,
     pub extras: Json<Vec<ExtraModel>>,
     #[serde(with = "time::serde::rfc3339")]
     pub created_at: OffsetDateTime,
@@ -25,20 +26,22 @@ pub struct ProductModel {
 impl ProductModel {
     pub fn try_into_entity(self) -> Result<product::Product, Box<dyn std::error::Error>> {
         let name = product::Name::new(self.name)?;
-        let extras = self
+        let extras_vec = self
             .extras
             .0
             .into_iter()
             .map(ExtraModel::try_into_entity)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let extras = product::Extras::new(extras)?;
+        let kind = product::Kind::parse_str(&self.kind)?;
+        let extras = product::Extras::new(extras_vec)?;
         let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
         let product = product::Product::config(product::Config {
             id: product::Id::from(self.id),
             catalog_id: catalog::Id::from(self.catalog_id),
             name,
             price: product::Price::from(self.price),
+            kind,
             extras: Some(extras),
             metadata,
         });

@@ -175,9 +175,76 @@ impl From<Decimal> for Price {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum Kind {
+    Brazillian,
+    Burger,
+    French,
+    IceCream,
+    Italian,
+    Japanese,
+    Korean,
+    Libanese,
+}
+
+impl Kind {
+    /// Try parsing `value` into [`Kind`]
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ParseKindError`] when `value` cannot be parsed to [`Kind`]
+    pub fn parse_str(value: &str) -> Result<Self, ParseKindError> {
+        match value {
+            "brazillian" => Ok(Self::Brazillian),
+            "burger" => Ok(Self::Burger),
+            "french" => Ok(Self::French),
+            "ice_cream" => Ok(Self::IceCream),
+            "italian" => Ok(Self::Italian),
+            "japanese" => Ok(Self::Japanese),
+            "korean" => Ok(Self::Korean),
+            "libanese" => Ok(Self::Libanese),
+            other => Err(ParseKindError(Box::from(other))),
+        }
+    }
+}
+
+impl Kind {
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Brazillian => "brazillian",
+            Self::Burger => "burger",
+            Self::French => "french",
+            Self::IceCream => "ice_cream",
+            Self::Italian => "italian",
+            Self::Japanese => "japanese",
+            Self::Korean => "korean",
+            Self::Libanese => "libanese",
+        }
+    }
+}
+
+impl fmt::Display for Kind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_str().fmt(f)
+    }
+}
+
+impl TryFrom<&str> for Kind {
+    type Error = ParseKindError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::parse_str(value)
+    }
+}
+
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 #[error("Provided string `{0} is not a valid product id`")]
 pub struct ParseIdError(pub Box<str>);
+
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+#[error("Provided string `{0}` is not a valid kind of product")]
+pub struct ParseKindError(pub Box<str>);
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum NameError {
@@ -229,5 +296,25 @@ mod tests {
         let extra = extra::Extra::new(name, extra::Price::from_cents(20));
         let big_extras: Vec<extra::Extra> = vec![extra; Extras::MAX_LEN + 1];
         assert_eq!(Extras::new(big_extras).err(), Some(ExtrasError::Length));
+    }
+
+    #[test]
+    fn parse_kind() {
+        let kinds_str = [
+            "brazillian",
+            "burger",
+            "french",
+            "ice_cream",
+            "italian",
+            "japanese",
+            "korean",
+            "libanese",
+        ];
+
+        for kind in kinds_str {
+            let parsed = Kind::parse_str(kind);
+            assert!(parsed.is_ok());
+            assert_eq!(parsed.unwrap().as_str(), kind);
+        }
     }
 }

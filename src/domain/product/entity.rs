@@ -1,4 +1,4 @@
-use super::{Extras, Id, Name, Price};
+use super::{Extras, Id, Kind, Name, Price};
 use crate::catalog;
 use crate::metadata;
 
@@ -8,18 +8,26 @@ pub struct Product {
     pub(super) catalog_id: catalog::Id,
     pub name: Name,
     pub price: Price,
+    pub kind: Kind,
     pub extras: Extras,
     pub metadata: metadata::Metadata,
 }
 
 impl Product {
     #[must_use]
-    pub fn new(catalog_id: catalog::Id, name: Name, price: Price, extras: Extras) -> Self {
+    pub fn new(
+        catalog_id: catalog::Id,
+        name: Name,
+        price: Price,
+        kind: Kind,
+        extras: Extras,
+    ) -> Self {
         Self {
             id: Id::new(),
             catalog_id,
             name,
             price,
+            kind,
             extras,
             metadata: metadata::Metadata::new(),
         }
@@ -32,6 +40,7 @@ impl Product {
             catalog_id: config.catalog_id,
             name: config.name,
             price: config.price,
+            kind: config.kind,
             extras: config.extras.unwrap_or_default(),
             metadata: config.metadata,
         }
@@ -56,6 +65,7 @@ pub struct Config {
     pub catalog_id: catalog::Id,
     pub name: Name,
     pub price: Price,
+    pub kind: Kind,
     pub extras: Option<Extras>,
     pub metadata: metadata::Metadata,
 }

@@ -6,4 +6,4 @@ mod vo;
 pub use entity::{Config, Product};
 pub use error::{ConflictKind, Error, NotFoundKind, ValidationKind};
 pub use repository::Repository;
-pub use vo::{Extras, ExtrasError, Id, Name, NameError, ParseIdError, Price};
+pub use vo::{Extras, ExtrasError, Id, Kind, Name, NameError, ParseIdError, ParseKindError, Price};

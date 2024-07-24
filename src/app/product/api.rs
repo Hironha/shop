@@ -19,6 +19,7 @@ pub struct CreatePath {
 pub struct CreateBody {
     pub name: String,
     pub price: u64,
+    pub kind: String,
     pub extras_ids: Vec<String>,
 }
 
@@ -36,6 +37,7 @@ pub async fn create(
         catalog_id: path.catalog_id,
         name: body.name,
         price: body.price,
+        kind: body.kind,
         extras_ids,
     };
 
@@ -114,6 +116,7 @@ pub struct UpdatePath {
 pub struct UpdateBody {
     pub name: String,
     pub price: u64,
+    pub kind: String,
     pub extras_ids: Vec<String>,
 }
 
@@ -132,6 +135,7 @@ pub async fn update(
         catalog_id: path.catalog_id,
         name: body.name,
         price: body.price,
+        kind: body.kind,
         extras_ids,
     };
 

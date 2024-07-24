@@ -22,6 +22,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
     pub async fn create(&mut self, input: CreateInput) -> Result<product::Product, product::Error> {
         let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
         let name = product::Name::new(input.name)?;
+        let kind = product::Kind::parse_str(&input.kind)?;
         let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
 
         let extras = self.find_extras(&extras_ids).await?;
@@ -31,6 +32,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
             catalog_id,
             name,
             product::Price::from_cents(input.price),
+            kind,
             product_extras,
         );
 
@@ -57,6 +59,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
         let id = product::Id::parse_str(&input.id)?;
         let name = product::Name::new(input.name)?;
         let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
+        let kind = product::Kind::parse_str(&input.kind)?;
         let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
 
         let mut product = self.products.find(id, catalog_id).await?;
@@ -66,6 +69,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
 
         product.name = name;
         product.price = product::Price::from_cents(input.price);
+        product.kind = kind;
         product.extras = product_extras;
         product.metadata.update();
 

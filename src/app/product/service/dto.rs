@@ -5,6 +5,7 @@ pub struct CreateInput {
     pub catalog_id: String,
     pub name: String,
     pub price: u64,
+    pub kind: String,
     pub extras_ids: ExtrasIds,
 }
 
@@ -26,6 +27,7 @@ pub struct UpdateInput {
     pub catalog_id: String,
     pub name: String,
     pub price: u64,
+    pub kind: String,
     pub extras_ids: ExtrasIds,
 }
 

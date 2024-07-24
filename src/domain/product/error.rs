@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{ExtrasError, Id, Name, NameError, ParseIdError};
+use super::{ExtrasError, Id, Name, NameError, ParseIdError, ParseKindError};
 use crate::catalog;
 use crate::extra;
 
@@ -68,6 +68,12 @@ impl From<ExtrasError> for Error {
     }
 }
 
+impl From<ParseKindError> for Error {
+    fn from(value: ParseKindError) -> Self {
+        Self::Validation(ValidationKind::Kind(value))
+    }
+}
+
 impl From<extra::IdError> for Error {
     fn from(value: extra::IdError) -> Self {
         Self::Validation(ValidationKind::ExtraId(value))
@@ -108,6 +114,8 @@ pub enum ValidationKind {
     ExtraId(extra::IdError),
     #[error(transparent)]
     Extras(ExtrasError),
+    #[error(transparent)]
+    Kind(ParseKindError),
     #[error(
         "Catalog cannot have more than {len} products",
         len = catalog::Products::MAX_LEN

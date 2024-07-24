@@ -1,3 +1,3 @@
 update product
-set name = $1, price = $2, updated_at = $3
-where id = $4 and catalog_id = $5
+set name = $1, price = $2, kind = $3, updated_at = $4
+where id = $5 and catalog_id = $6

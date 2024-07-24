@@ -27,6 +27,7 @@ create table if not exists product (
     catalog_id uuid not null,
     name varchar(64) not null,
     price decimal(20, 2) not null,
+    kind varchar(32) not null,
     created_at timestamptz not null,
     updated_at timestamptz not null,
 
