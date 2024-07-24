@@ -80,11 +80,19 @@ pub struct ListQuery {
 }
 
 pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) -> Response {
-    let input = ListInput {
-        page: query.page.unwrap_or(1),
-        limit: query.limit.unwrap_or(10),
+    // TODO: replace manually matching by newtype
+    let page = match query.page {
+        Some(0) | None => 1,
+        Some(page) => page,
     };
 
+    // TODO: replace manually matching by newtype
+    let limit = match query.limit {
+        Some(0) | None => 10,
+        Some(limit) => limit,
+    };
+
+    let input = ListInput { page, limit };
     let service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let pagination = match service.list(input).await {
         Ok(pagination) => pagination,
