@@ -16,11 +16,13 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
     pub fn new(products: T, extras: U) -> Self {
         Self { products, extras }
     }
+}
 
+impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
     pub async fn create(&mut self, input: CreateInput) -> Result<product::Product, product::Error> {
         let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
         let name = product::Name::new(input.name)?;
-        let extras_ids = Self::parse_extras_ids(&input.extras_ids.take())?;
+        let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
 
         let extras = self.find_extras(&extras_ids).await?;
 
@@ -55,7 +57,7 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
         let id = product::Id::parse_str(&input.id)?;
         let name = product::Name::new(input.name)?;
         let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
-        let extras_ids = Self::parse_extras_ids(&input.extras_ids.take())?;
+        let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
 
         let mut product = self.products.find(id, catalog_id).await?;
 
@@ -84,12 +86,12 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
                 err => product::Error::any(err),
             })
     }
+}
 
-    fn parse_extras_ids(extras_ids: &[String]) -> Result<Vec<extra::Id>, product::Error> {
-        extras_ids
-            .iter()
-            .map(|id| extra::Id::parse_str(id))
-            .collect::<Result<Vec<extra::Id>, extra::IdError>>()
-            .map_err(product::Error::from)
-    }
+fn parse_extras_ids(extras_ids: &[String]) -> Result<Vec<extra::Id>, product::Error> {
+    extras_ids
+        .iter()
+        .map(|id| extra::Id::parse_str(id))
+        .collect::<Result<Vec<extra::Id>, extra::IdError>>()
+        .map_err(product::Error::from)
 }

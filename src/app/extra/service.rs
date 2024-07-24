@@ -13,7 +13,9 @@ impl<T: Repository> ExtraService<T> {
     pub fn new(extras: T) -> Self {
         Self { extras }
     }
+}
 
+impl<T: Repository> ExtraService<T> {
     pub async fn all(&self) -> Result<Vec<Extra>, Error> {
         self.extras.all().await
     }

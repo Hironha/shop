@@ -13,7 +13,9 @@ impl<T: catalog::Repository> CatalogService<T> {
     pub fn new(catalogs: T) -> Self {
         Self { catalogs }
     }
+}
 
+impl<T: catalog::Repository> CatalogService<T> {
     pub async fn create(
         &mut self,
         input: CreateInput,
