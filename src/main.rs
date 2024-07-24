@@ -41,7 +41,7 @@ async fn main() {
         .max_connections(20)
         .connect(db_url)
         .await
-        .expect("Failed connecting to postgres database");
+        .expect("Connection to postgres database");
 
     let context = Context { pool };
 
