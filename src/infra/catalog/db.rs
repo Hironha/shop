@@ -73,11 +73,7 @@ impl catalog::Repository for PgCatalogs {
             .await
             .map_err(catalog::Error::any)?;
 
-        let list_query = queries::ListQuery {
-            limit: u16::try_from(query.limit).unwrap_or(u16::MAX),
-            page: query.page,
-        };
-
+        let list_query = queries::ListQuery(query.clone());
         let models = list_query
             .exec(&self.pool)
             .await

@@ -42,8 +42,8 @@ impl<'a> CatalogProductsView<'a> {
 #[derive(Clone, Debug, Serialize)]
 pub struct PaginationView<'a> {
     pub count: u64,
-    pub page: u64,
-    pub limit: u64,
+    pub page: u32,
+    pub limit: u8,
     pub items: Vec<CatalogProductsView<'a>>,
 }
 
@@ -51,8 +51,8 @@ impl<'a> PaginationView<'a> {
     pub fn new(pagination: &'a catalog::Pagination) -> Self {
         Self {
             count: pagination.count,
-            page: pagination.page,
-            limit: pagination.limit,
+            page: pagination.page.into(),
+            limit: pagination.limit.into(),
             items: pagination
                 .items
                 .iter()
@@ -63,7 +63,7 @@ impl<'a> PaginationView<'a> {
 }
 
 impl<'a> PaginationView<'a> {
-    pub fn pages(&self) -> Vec<u64> {
+    pub fn pages(&self) -> Vec<u32> {
         let start = self.page.saturating_sub(2).max(1);
         let end = self.page.saturating_add(self.remaining_pages().min(2));
         (start..=end).collect()
@@ -77,9 +77,10 @@ impl<'a> PaginationView<'a> {
         self.remaining_pages() > 0
     }
 
-    pub fn remaining_pages(&self) -> u64 {
-        let pages = self.count.div_ceil(self.limit);
-        pages.saturating_sub(self.page)
+    pub fn remaining_pages(&self) -> u32 {
+        let pages = self.count.div_ceil(self.limit.into());
+        let remaining = pages.saturating_sub(self.page.into());
+        u32::try_from(remaining).unwrap_or(u32::MAX)
     }
 }
 

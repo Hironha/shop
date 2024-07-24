@@ -78,24 +78,21 @@ impl FindQuery {
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct ListQuery {
-    pub(super) page: u64,
-    pub(super) limit: u16,
-}
+pub(super) struct ListQuery(pub(super) catalog::ListQuery);
 
 impl ListQuery {
     pub(super) async fn exec(
         self,
         exec: impl PgExecutor<'_>,
     ) -> Result<Vec<CatalogWithProductsModel>, sqlx::Error> {
-        let limit = i64::from(self.limit);
-        let offset =
-            i64::try_from(self.page.saturating_sub(1) * u64::from(self.limit)).unwrap_or_default();
+        let limit = u8::from(self.0.limit);
+        let page = u32::from(self.0.page);
+        let offset = page.saturating_sub(1) * u32::from(limit);
 
         let sql = include_str!("./sql/list.sql");
         sqlx::query_as(sql)
-            .bind(limit)
-            .bind(offset)
+            .bind(i64::from(limit))
+            .bind(i64::from(offset))
             .fetch_all(exec)
             .await
     }

@@ -1,3 +1,5 @@
+use std::num::{NonZeroU32, NonZeroU8};
+
 #[derive(Clone, Debug)]
 pub struct CreateInput {
     pub name: String,
@@ -16,8 +18,8 @@ pub struct FindInput {
 
 #[derive(Clone, Debug)]
 pub struct ListInput {
-    pub page: u64,
-    pub limit: u64,
+    pub page: NonZeroU32,
+    pub limit: NonZeroU8,
 }
 
 #[derive(Clone, Debug)]

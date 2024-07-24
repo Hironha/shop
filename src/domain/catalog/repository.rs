@@ -1,3 +1,5 @@
+use std::num::{NonZeroU32, NonZeroU8};
+
 use super::{Catalog, CatalogProducts, Error, Id};
 
 #[allow(async_fn_in_trait)]
@@ -11,14 +13,14 @@ pub trait Repository: Send + Clone {
 
 #[derive(Clone, Debug)]
 pub struct ListQuery {
-    pub page: u64,
-    pub limit: u64,
+    pub page: NonZeroU32,
+    pub limit: NonZeroU8,
 }
 
 #[derive(Clone, Debug)]
 pub struct Pagination {
     pub count: u64,
-    pub page: u64,
-    pub limit: u64,
+    pub page: NonZeroU32,
+    pub limit: NonZeroU8,
     pub items: Vec<CatalogProducts>,
 }
