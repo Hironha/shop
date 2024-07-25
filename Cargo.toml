@@ -28,7 +28,7 @@ askama = "0.12.1"
 axum = "0.7.5"
 rust_decimal = "1.35.0"
 serde = { version = "1.0.204", features = ["derive"] }
-sqlx = { version = "0.7.4", features = [
+sqlx = { version = "0.8.0", features = [
     "runtime-tokio-rustls",
     "postgres",
     "rust_decimal",
