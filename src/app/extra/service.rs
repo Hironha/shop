@@ -2,45 +2,39 @@ mod dto;
 
 pub use dto::{CreateInput, DeleteInput, UpdateInput};
 
-use domain::extra::{Error, Extra, Id, Name, Price, Repository};
+use domain::extra;
 
 #[derive(Clone, Debug)]
 pub struct ExtraService<T> {
     extras: T,
 }
 
-impl<T: Repository> ExtraService<T> {
+impl<T: extra::Repository> ExtraService<T> {
     pub fn new(extras: T) -> Self {
         Self { extras }
     }
 }
 
-impl<T: Repository> ExtraService<T> {
-    pub async fn all(&self) -> Result<Vec<Extra>, Error> {
+impl<T: extra::Repository> ExtraService<T> {
+    pub async fn all(&self) -> Result<Vec<extra::Extra>, extra::Error> {
         self.extras.all().await
     }
 
-    pub async fn create(&mut self, input: CreateInput) -> Result<Extra, Error> {
-        let name = Name::new(input.name)?;
-        let extra = Extra::new(name, Price::from_cents(input.price));
-
+    pub async fn create(&mut self, input: CreateInput) -> Result<extra::Extra, extra::Error> {
+        let extra = extra::Extra::new(input.name, input.price);
         self.extras.create(&extra).await?;
 
         Ok(extra)
     }
 
-    pub async fn delete(&mut self, input: DeleteInput) -> Result<Extra, Error> {
-        let id = Id::parse_str(&input.id)?;
-        self.extras.delete(id).await
+    pub async fn delete(&mut self, input: DeleteInput) -> Result<extra::Extra, extra::Error> {
+        self.extras.delete(input.id).await
     }
 
-    pub async fn update(&mut self, input: UpdateInput) -> Result<Extra, Error> {
-        let id = Id::parse_str(&input.id)?;
-        let name = Name::new(input.name)?;
-
-        let mut extra = self.extras.find(id).await?;
-        extra.name = name;
-        extra.price = Price::from_cents(input.price);
+    pub async fn update(&mut self, input: UpdateInput) -> Result<extra::Extra, extra::Error> {
+        let mut extra = self.extras.find(input.id).await?;
+        extra.name = input.name;
+        extra.price = input.price;
         extra.metadata.update();
 
         self.extras.update(&extra).await?;

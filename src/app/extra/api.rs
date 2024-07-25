@@ -32,9 +32,14 @@ pub struct CreateBody {
 }
 
 pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> Response {
+    let name = match extra::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
     let input = CreateInput {
-        name: body.name,
-        price: body.price,
+        name,
+        price: extra::Price::from_cents(body.price),
     };
 
     let mut service = ExtraService::new(PgExtras::new(ctx.pool));
@@ -55,7 +60,12 @@ pub struct DeletePath {
 }
 
 pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> Response {
-    let input = DeleteInput { id: path.id };
+    let id = match extra::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let input = DeleteInput { id };
     let mut service = ExtraService::new(PgExtras::new(ctx.pool));
     let deleted_product_extra = match service.delete(input).await {
         Ok(product_extra) => product_extra,
@@ -84,10 +94,20 @@ pub async fn update(
     Path(path): Path<UpdatePath>,
     Json(body): Json<UpdateBody>,
 ) -> Response {
+    let id = match extra::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let name = match extra::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
     let input = UpdateInput {
-        id: path.id,
-        name: body.name,
-        price: body.price,
+        id,
+        name,
+        price: extra::Price::from_cents(body.price),
     };
 
     let mut service = ExtraService::new(PgExtras::new(ctx.pool));
@@ -118,9 +138,11 @@ fn create_error_response(err: extra::Error) -> impl IntoResponse {
             StatusCode::NOT_FOUND,
             Json(ApiError::new("NotFound", err.to_string())),
         ),
-        Error::Validation(kind) => (
-            StatusCode::BAD_REQUEST,
-            Json(ApiError::new("Validation", kind.to_string())),
-        ),
     }
+}
+
+fn create_validation_error_response(err: &dyn std::error::Error) -> impl IntoResponse {
+    let msg = err.to_string();
+    let body = ApiError::new("Validation", msg);
+    (StatusCode::BAD_REQUEST, Json(body))
 }

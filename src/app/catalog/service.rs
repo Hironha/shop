@@ -20,13 +20,7 @@ impl<T: catalog::Repository> CatalogService<T> {
         &mut self,
         input: CreateInput,
     ) -> Result<catalog::CatalogProducts, catalog::Error> {
-        let name = catalog::Name::new(input.name)?;
-        let description = input
-            .description
-            .map(catalog::Description::new)
-            .transpose()?;
-
-        let catalog = catalog::Catalog::new(name, description);
+        let catalog = catalog::Catalog::new(input.name, input.description);
         self.catalogs.create(&catalog).await?;
 
         let products = catalog::Products::default();
@@ -37,13 +31,11 @@ impl<T: catalog::Repository> CatalogService<T> {
         &mut self,
         input: DeleteInput,
     ) -> Result<catalog::CatalogProducts, catalog::Error> {
-        let id = catalog::Id::parse_str(&input.id)?;
-        self.catalogs.delete(id).await
+        self.catalogs.delete(input.id).await
     }
 
     pub async fn find(&self, input: FindInput) -> Result<catalog::CatalogProducts, catalog::Error> {
-        let id = catalog::Id::parse_str(&input.id)?;
-        self.catalogs.find(id).await
+        self.catalogs.find(input.id).await
     }
 
     pub async fn list(&self, input: ListInput) -> Result<catalog::Pagination, catalog::Error> {
@@ -59,16 +51,9 @@ impl<T: catalog::Repository> CatalogService<T> {
         &mut self,
         input: UpdateInput,
     ) -> Result<catalog::CatalogProducts, catalog::Error> {
-        let id = catalog::Id::parse_str(&input.id)?;
-        let name = catalog::Name::new(input.name)?;
-        let description = input
-            .description
-            .map(catalog::Description::new)
-            .transpose()?;
-
-        let mut catalog_products = self.catalogs.find(id).await?;
-        catalog_products.catalog.name = name;
-        catalog_products.catalog.description = description;
+        let mut catalog_products = self.catalogs.find(input.id).await?;
+        catalog_products.catalog.name = input.name;
+        catalog_products.catalog.description = input.description;
         catalog_products.catalog.metadata.update();
 
         self.catalogs.update(&catalog_products.catalog).await?;

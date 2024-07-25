@@ -5,7 +5,7 @@ mod variants;
 mod vo;
 
 pub use entity::{Catalog, Config};
-pub use error::{ConflictKind, Error, NotFoundKind, ValidationKind};
+pub use error::{ConflictKind, Error, NotFoundKind};
 pub use repository::{ListQuery, Pagination, Repository};
 pub use variants::CatalogProducts;
 pub use vo::{

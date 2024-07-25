@@ -20,10 +20,17 @@ pub struct CreateBody {
 }
 
 pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) -> Response {
-    let input = CreateInput {
-        name: body.name,
-        description: body.description,
+    let name = match catalog::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
     };
+
+    let description = match body.description.map(catalog::Description::new).transpose() {
+        Ok(description) => description,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let input = CreateInput { name, description };
 
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let created_product_catalog = match service.create(input).await {
@@ -43,7 +50,13 @@ pub struct DeletePath {
 }
 
 pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> Response {
-    let input = DeleteInput { id: path.id };
+    let id = match catalog::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let input = DeleteInput { id };
+
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let deleted_product_catalog = match service.delete(input).await {
         Ok(product_catalog) => product_catalog,
@@ -62,7 +75,13 @@ pub struct FindPath {
 }
 
 pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> Response {
-    let input = FindInput { id: path.id };
+    let id = match catalog::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let input = FindInput { id };
+
     let service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let found_product_catalog = match service.find(input).await {
         Ok(product_catalog) => product_catalog,
@@ -107,14 +126,14 @@ pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) ->
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct UpdateBody {
-    pub name: String,
-    pub description: Option<String>,
+pub struct UpdatePath {
+    pub id: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct UpdatePath {
-    pub id: String,
+pub struct UpdateBody {
+    pub name: String,
+    pub description: Option<String>,
 }
 
 pub async fn update(
@@ -122,10 +141,25 @@ pub async fn update(
     Path(path): Path<UpdatePath>,
     Json(body): Json<UpdateBody>,
 ) -> Response {
+    let id = match catalog::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let name = match catalog::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let description = match body.description.map(catalog::Description::new).transpose() {
+        Ok(description) => description,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
     let input = UpdateInput {
-        id: path.id,
-        name: body.name,
-        description: body.description,
+        id,
+        name,
+        description,
     };
 
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
@@ -156,9 +190,10 @@ fn create_error_response(err: catalog::Error) -> impl IntoResponse {
             StatusCode::NOT_FOUND,
             Json(ApiError::new("NotFound", kind.to_string())),
         ),
-        Error::Validation(kind) => (
-            StatusCode::BAD_REQUEST,
-            Json(ApiError::new("Validation", kind.to_string())),
-        ),
     }
+}
+
+fn create_validation_error_response(err: &dyn std::error::Error) -> impl IntoResponse {
+    let body = ApiError::new("Validation", err.to_string());
+    (StatusCode::BAD_GATEWAY, Json(body))
 }

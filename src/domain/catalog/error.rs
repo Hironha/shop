@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{DescriptionError, Id, Name, NameError, ParseIdError, ProductsError};
+use super::{Id, Name};
 use crate::product;
 
 #[derive(Debug, Error)]
@@ -11,8 +11,6 @@ pub enum Error {
     Internal(Box<dyn std::error::Error>),
     #[error(transparent)]
     NotFound(NotFoundKind),
-    #[error(transparent)]
-    Validation(ValidationKind),
 }
 
 impl Error {
@@ -39,30 +37,6 @@ impl Error {
     }
 }
 
-impl From<DescriptionError> for Error {
-    fn from(value: DescriptionError) -> Self {
-        Self::Validation(ValidationKind::Description(value))
-    }
-}
-
-impl From<ParseIdError> for Error {
-    fn from(value: ParseIdError) -> Self {
-        Self::Validation(ValidationKind::Id(value))
-    }
-}
-
-impl From<NameError> for Error {
-    fn from(value: NameError) -> Self {
-        Self::Validation(ValidationKind::Name(value))
-    }
-}
-
-impl From<ProductsError> for Error {
-    fn from(value: ProductsError) -> Self {
-        Self::Validation(ValidationKind::Products(value))
-    }
-}
-
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum ConflictKind {
     #[error("Product catalog with id `{0}` already exists")]
@@ -79,18 +53,4 @@ pub enum NotFoundKind {
     Id(Id),
     #[error(transparent)]
     Product(product::NotFoundKind),
-}
-
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
-pub enum ValidationKind {
-    #[error(transparent)]
-    Description(DescriptionError),
-    #[error(transparent)]
-    Id(ParseIdError),
-    #[error(transparent)]
-    Name(NameError),
-    #[error(transparent)]
-    Product(product::ValidationKind),
-    #[error(transparent)]
-    Products(ProductsError),
 }

@@ -2,7 +2,6 @@ mod dto;
 
 pub use dto::{CreateInput, DeleteInput, ExtrasIds, FindInput, UpdateInput};
 
-use domain::catalog;
 use domain::extra;
 use domain::product;
 
@@ -20,20 +19,15 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
 
 impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
     pub async fn create(&mut self, input: CreateInput) -> Result<product::Product, product::Error> {
-        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
-        let name = product::Name::new(input.name)?;
-        let kind = product::Kind::parse_str(&input.kind)?;
-        let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
+        let found_extras = self.find_extras(input.extras_ids.as_slice()).await?;
+        let extras = product::Extras::new(found_extras).map_err(product::Error::any)?;
 
-        let extras = self.find_extras(&extras_ids).await?;
-
-        let product_extras = product::Extras::new(extras)?;
         let product = product::Product::new(
-            catalog_id,
-            name,
-            product::Price::from_cents(input.price),
-            kind,
-            product_extras,
+            input.catalog_id,
+            input.name,
+            input.price,
+            input.kind,
+            extras,
         );
 
         self.products.create(&product).await?;
@@ -42,34 +36,22 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
     }
 
     pub async fn delete(&mut self, input: DeleteInput) -> Result<product::Product, product::Error> {
-        let id = product::Id::parse_str(&input.id)?;
-        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
-
-        self.products.delete(id, catalog_id).await
+        self.products.delete(input.id, input.catalog_id).await
     }
 
     pub async fn find(&self, input: FindInput) -> Result<product::Product, product::Error> {
-        let id = product::Id::parse_str(&input.id)?;
-        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
-
-        self.products.find(id, catalog_id).await
+        self.products.find(input.id, input.catalog_id).await
     }
 
     pub async fn update(&mut self, input: UpdateInput) -> Result<product::Product, product::Error> {
-        let id = product::Id::parse_str(&input.id)?;
-        let name = product::Name::new(input.name)?;
-        let catalog_id = catalog::Id::parse_str(&input.catalog_id)?;
-        let kind = product::Kind::parse_str(&input.kind)?;
-        let extras_ids = parse_extras_ids(&input.extras_ids.take())?;
+        let mut product = self.products.find(input.id, input.catalog_id).await?;
 
-        let mut product = self.products.find(id, catalog_id).await?;
+        let extras = self.find_extras(input.extras_ids.as_slice()).await?;
+        let product_extras = product::Extras::new(extras).map_err(product::Error::any)?;
 
-        let extras = self.find_extras(&extras_ids).await?;
-        let product_extras = product::Extras::new(extras)?;
-
-        product.name = name;
-        product.price = product::Price::from_cents(input.price);
-        product.kind = kind;
+        product.name = input.name;
+        product.price = input.price;
+        product.kind = input.kind;
         product.extras = product_extras;
         product.metadata.update();
 
@@ -90,12 +72,4 @@ impl<T: product::Repository, U: extra::Repository> ProductService<T, U> {
                 err => product::Error::any(err),
             })
     }
-}
-
-fn parse_extras_ids(extras_ids: &[String]) -> Result<Vec<extra::Id>, product::Error> {
-    extras_ids
-        .iter()
-        .map(|id| extra::Id::parse_str(id))
-        .collect::<Result<Vec<extra::Id>, extra::IdError>>()
-        .map_err(product::Error::from)
 }

@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{ExtrasError, Id, Name, NameError, ParseIdError, ParseKindError};
+use super::{Id, Name};
 use crate::catalog;
 use crate::extra;
 
@@ -12,8 +12,6 @@ pub enum Error {
     Internal(Box<dyn std::error::Error>),
     #[error(transparent)]
     NotFound(NotFoundKind),
-    #[error(transparent)]
-    Validation(ValidationKind),
 }
 
 impl Error {
@@ -50,42 +48,6 @@ impl Error {
     }
 }
 
-impl From<ParseIdError> for Error {
-    fn from(value: ParseIdError) -> Self {
-        Self::Validation(ValidationKind::Id(value))
-    }
-}
-
-impl From<NameError> for Error {
-    fn from(value: NameError) -> Self {
-        Self::Validation(ValidationKind::Name(value))
-    }
-}
-
-impl From<ExtrasError> for Error {
-    fn from(value: ExtrasError) -> Self {
-        Self::Validation(ValidationKind::Extras(value))
-    }
-}
-
-impl From<ParseKindError> for Error {
-    fn from(value: ParseKindError) -> Self {
-        Self::Validation(ValidationKind::Kind(value))
-    }
-}
-
-impl From<extra::IdError> for Error {
-    fn from(value: extra::IdError) -> Self {
-        Self::Validation(ValidationKind::ExtraId(value))
-    }
-}
-
-impl From<catalog::ParseIdError> for Error {
-    fn from(value: catalog::ParseIdError) -> Self {
-        Self::Validation(ValidationKind::CatalogId(value))
-    }
-}
-
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum ConflictKind {
     #[error("Product with id `{0}` already exists")]
@@ -102,25 +64,4 @@ pub enum NotFoundKind {
     CatalogId(catalog::Id),
     #[error("Product extra with id `{0}` not found")]
     ExtraId(extra::Id),
-}
-
-#[derive(Clone, Debug, Eq, Error, PartialEq)]
-pub enum ValidationKind {
-    #[error(transparent)]
-    Id(ParseIdError),
-    #[error(transparent)]
-    CatalogId(catalog::ParseIdError),
-    #[error(transparent)]
-    ExtraId(extra::IdError),
-    #[error(transparent)]
-    Extras(ExtrasError),
-    #[error(transparent)]
-    Kind(ParseKindError),
-    #[error(
-        "Catalog cannot have more than {len} products",
-        len = catalog::Products::MAX_LEN
-    )]
-    Max,
-    #[error(transparent)]
-    Name(NameError),
 }

@@ -39,20 +39,6 @@ impl product::Repository for PgProducts {
     async fn create(&mut self, product: &product::Product) -> Result<(), product::Error> {
         let mut trx = self.pool.begin().await.map_err(product::Error::any)?;
 
-        let count_query = queries::CountByCatalog {
-            catalog_id: product.catalog_id(),
-        };
-
-        let count = count_query
-            .exec(trx.as_mut())
-            .await
-            .map(|c| u8::try_from(c).unwrap_or(u8::MAX))
-            .map_err(product::Error::any)?;
-
-        if count >= catalog::Products::MAX_LEN {
-            return Err(product::Error::Validation(product::ValidationKind::Max));
-        }
-
         let create_query = queries::CreateQuery { product };
         create_query.exec(trx.as_mut()).await.map_err(|err| {
             if Self::is_pk_error(&err) {

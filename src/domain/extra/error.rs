@@ -5,8 +5,6 @@ use super::{Id, IdError, Name, NameError};
 #[derive(Debug, Error)]
 pub enum Error {
     #[error(transparent)]
-    Validation(ValidationKind),
-    #[error(transparent)]
     Conflict(ConflictKind),
     #[error("Product extra with id `{0}` not found")]
     NotFound(Id),
@@ -26,30 +24,8 @@ impl Error {
     }
 
     #[must_use]
-    pub fn id_err(err: IdError) -> Self {
-        Self::Validation(ValidationKind::Id(err))
-    }
-
-    #[must_use]
     pub fn name_conflict(name: Name) -> Self {
         Self::Conflict(ConflictKind::Name(name))
-    }
-
-    #[must_use]
-    pub fn name_err(err: NameError) -> Self {
-        Self::Validation(ValidationKind::Name(err))
-    }
-}
-
-impl From<NameError> for Error {
-    fn from(value: NameError) -> Self {
-        Self::name_err(value)
-    }
-}
-
-impl From<IdError> for Error {
-    fn from(value: IdError) -> Self {
-        Self::id_err(value)
     }
 }
 

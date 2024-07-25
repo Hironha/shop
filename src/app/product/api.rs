@@ -1,8 +1,10 @@
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use domain::product;
 use serde::Deserialize;
+
+use domain::catalog;
+use domain::product;
 
 use super::service::{CreateInput, DeleteInput, ExtrasIds, FindInput, ProductService, UpdateInput};
 use super::view::ProductView;
@@ -28,16 +30,31 @@ pub async fn create(
     Path(path): Path<CreatePath>,
     Json(body): Json<CreateBody>,
 ) -> impl IntoResponse {
-    let extras_ids = match ExtrasIds::new(body.extras_ids) {
+    let catalog_id = match catalog::Id::parse_str(&path.catalog_id) {
+        Ok(catalog_id) => catalog_id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let name = match product::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let kind = match product::Kind::parse_str(&body.kind) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let extras_ids = match ExtrasIds::parse(&body.extras_ids) {
         Ok(extras_ids) => extras_ids,
-        Err(err) => return create_error_response(product::Error::from(err)).into_response(),
+        Err(err) => return create_validation_error_response(&err).into_response(),
     };
 
     let input = CreateInput {
-        catalog_id: path.catalog_id,
-        name: body.name,
-        price: body.price,
-        kind: body.kind,
+        catalog_id,
+        name,
+        price: product::Price::from_cents(body.price),
+        kind,
         extras_ids,
     };
 
@@ -62,14 +79,22 @@ pub struct DeletePath {
 }
 
 pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) -> impl IntoResponse {
-    let input = DeleteInput {
-        id: path.id,
-        catalog_id: path.catalog_id,
+    let id = match product::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
     };
 
-    let mut service =
-        ProductService::new(PgProducts::new(ctx.pool.clone()), PgExtras::new(ctx.pool));
+    let catalog_id = match catalog::Id::parse_str(&path.catalog_id) {
+        Ok(catalog_id) => catalog_id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
 
+    let input = DeleteInput { id, catalog_id };
+
+    let pg_products = PgProducts::new(ctx.pool.clone());
+    let pg_extras = PgExtras::new(ctx.pool);
+
+    let mut service = ProductService::new(pg_products, pg_extras);
     let deleted_product = match service.delete(input).await {
         Ok(product) => product,
         Err(err) => {
@@ -88,13 +113,22 @@ pub struct FindPath {
 }
 
 pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> impl IntoResponse {
-    let input = FindInput {
-        id: path.id,
-        catalog_id: path.catalog_id,
+    let id = match product::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
     };
 
-    let service = ProductService::new(PgProducts::new(ctx.pool.clone()), PgExtras::new(ctx.pool));
+    let catalog_id = match catalog::Id::parse_str(&path.id) {
+        Ok(catalog_id) => catalog_id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
 
+    let input = FindInput { id, catalog_id };
+
+    let pg_products = PgProducts::new(ctx.pool.clone());
+    let pg_extras = PgExtras::new(ctx.pool);
+
+    let service = ProductService::new(pg_products, pg_extras);
     let found_product = match service.find(input).await {
         Ok(product) => product,
         Err(err) => {
@@ -125,17 +159,37 @@ pub async fn update(
     Path(path): Path<UpdatePath>,
     Json(body): Json<UpdateBody>,
 ) -> impl IntoResponse {
-    let extras_ids = match ExtrasIds::new(body.extras_ids) {
+    let id = match product::Id::parse_str(&path.id) {
+        Ok(id) => id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let catalog_id = match catalog::Id::parse_str(&path.catalog_id) {
+        Ok(catalog_id) => catalog_id,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let name = match product::Name::new(body.name) {
+        Ok(name) => name,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let kind = match product::Kind::parse_str(&body.kind) {
+        Ok(kind) => kind,
+        Err(err) => return create_validation_error_response(&err).into_response(),
+    };
+
+    let extras_ids = match ExtrasIds::parse(&body.extras_ids) {
         Ok(extras_ids) => extras_ids,
-        Err(err) => return create_error_response(product::Error::from(err)).into_response(),
+        Err(err) => return create_validation_error_response(&err).into_response(),
     };
 
     let input = UpdateInput {
-        id: path.id,
-        catalog_id: path.catalog_id,
-        name: body.name,
-        price: body.price,
-        kind: body.kind,
+        id,
+        catalog_id,
+        name,
+        price: product::Price::from_cents(body.price),
+        kind,
         extras_ids,
     };
 
@@ -170,9 +224,10 @@ pub fn create_error_response(err: product::Error) -> impl IntoResponse {
             StatusCode::NOT_FOUND,
             Json(ApiError::new("NotFound", kind.to_string())),
         ),
-        Error::Validation(kind) => (
-            StatusCode::BAD_REQUEST,
-            Json(ApiError::new("Validation", kind.to_string())),
-        ),
     }
+}
+
+fn create_validation_error_response(err: &dyn std::error::Error) -> impl IntoResponse {
+    let body = ApiError::new("Validation", err.to_string());
+    (StatusCode::BAD_GATEWAY, Json(body))
 }
