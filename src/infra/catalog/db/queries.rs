@@ -126,3 +126,96 @@ impl<'a> UpdateQuery<'a> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use domain::metadata;
+    use sqlx::PgPool;
+
+    use super::*;
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn create_query_works(pool: PgPool) {
+        let catalog = catalog::Catalog::new(
+            catalog::Name::new("Vegetarian").expect("Valid catalog name"),
+            Some(catalog::Description::new("Vegetarian foods").expect("Valid catalog description")),
+        );
+
+        let result = CreateQuery { catalog: &catalog }.exec(&pool).await;
+        assert!(result.is_ok());
+    }
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn count_query_works(pool: PgPool) {
+        let result = CountQuery.exec(&pool).await;
+        assert_eq!(result.ok(), Some(2u64));
+    }
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn delete_query_works(pool: PgPool) {
+        let id = catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
+            .expect("Valid catalog id from fixtures");
+
+        let result = DeleteQuery { id }.exec(&pool).await;
+        println!("{result:#?}");
+
+        assert!(result.is_ok());
+
+        let deleted_model = result.expect("Deleted catalog model");
+        assert_eq!(deleted_model.id, id.uuid());
+    }
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn find_query_works(pool: PgPool) {
+        let id = catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
+            .expect("Valid catalog id from fixtures");
+
+        let result = FindQuery { id }.exec(&pool).await;
+        assert!(result.is_ok());
+
+        let found_model = result.expect("Found catalog model");
+        assert_eq!(found_model.id, id.uuid());
+    }
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn list_query_works(pool: PgPool) {
+        use std::num::{NonZeroU32, NonZeroU8};
+
+        let query = catalog::ListQuery {
+            page: NonZeroU32::new(1).unwrap(),
+            limit: NonZeroU8::new(10).unwrap(),
+        };
+
+        let result = ListQuery(query).exec(&pool).await;
+        assert!(result.is_ok());
+
+        let list = result.expect("Catalog with products models");
+        assert_eq!(list.len(), 2);
+    }
+
+    #[sqlx::test(fixtures("seed"))]
+    async fn update_query_works(pool: PgPool) {
+        let catalog = catalog::Catalog::config(catalog::Config {
+            id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
+                .expect("Valid catalog id from fixtures"),
+            name: catalog::Name::new("Burgers Updated").expect("Valid catalog name"),
+            description: None,
+            metadata: metadata::Metadata::new(),
+        });
+
+        let result = UpdateQuery { catalog: &catalog }.exec(&pool).await;
+        assert!(result.is_ok());
+
+        let updated_model = FindQuery { id: catalog.id() }
+            .exec(&pool)
+            .await
+            .expect("Updated model");
+
+        assert_eq!(updated_model.id, catalog.id().uuid());
+        assert_eq!(updated_model.name.as_str(), catalog.name.as_str());
+        assert_eq!(
+            updated_model.description,
+            catalog.description.map(|d| d.to_string())
+        );
+    }
+}

@@ -185,6 +185,7 @@ pub enum Kind {
     Japanese,
     Korean,
     Libanese,
+    Vegan,
 }
 
 impl Kind {
@@ -203,6 +204,7 @@ impl Kind {
             "japanese" => Ok(Self::Japanese),
             "korean" => Ok(Self::Korean),
             "libanese" => Ok(Self::Libanese),
+            "vegan" => Ok(Self::Vegan),
             other => Err(ParseKindError(Box::from(other))),
         }
     }
@@ -220,6 +222,7 @@ impl Kind {
             Self::Japanese => "japanese",
             Self::Korean => "korean",
             Self::Libanese => "libanese",
+            Self::Vegan => "vegan",
         }
     }
 }
@@ -299,22 +302,23 @@ mod tests {
     }
 
     #[test]
-    fn parse_kind() {
-        let kinds_str = [
-            "brazillian",
-            "burger",
-            "french",
-            "ice_cream",
-            "italian",
-            "japanese",
-            "korean",
-            "libanese",
+    fn kind_back_and_forth_str() {
+        let kinds = [
+            Kind::Brazillian,
+            Kind::Burger,
+            Kind::French,
+            Kind::IceCream,
+            Kind::Italian,
+            Kind::Japanese,
+            Kind::Korean,
+            Kind::Libanese,
+            Kind::Vegan,
         ];
 
-        for kind in kinds_str {
-            let parsed = Kind::parse_str(kind);
-            assert!(parsed.is_ok());
-            assert_eq!(parsed.unwrap().as_str(), kind);
+        for kind in kinds {
+            let parsed = Kind::parse_str(kind.as_str());
+            assert_eq!(parsed, Ok(kind));
+            assert_eq!(parsed.unwrap().as_str(), kind.as_str());
         }
     }
 }
