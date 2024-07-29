@@ -3,34 +3,34 @@
 {% block title %}Extras{% endblock title %}
 
 {% block content %}
-<div class="flex flex-col gap-4">
-	<div class="breadcrumbs text-sm">
-		<ul>
-			<li>Dashboard</li>
-			<li>Adicionais</li>
-		</ul>
-	</div>
+<div class="flex flex-col gap-6">
+  <div class="breadcrumbs text-sm">
+    <ul>
+      <li>Dashboard</li>
+      <li>Adicionais</li>
+    </ul>
+  </div>
 
-	<section class="flex flex-col gap-2">
-		<h1 class="text-2xl">Adicionais</h1>
-	</section>
+  <section class="flex flex-col gap-2">
+    <h1 class="text-2xl">Adicionais</h1>
+  </section>
 
-	<main>
-		{% include "./table.j2" %}
-	</main>
+  <main>
+    {% include "./table.j2" %}
+  </main>
 </div>
 {% endblock content %}
 
 {% block scripts %}
 <script>
-	document.querySelectorAll("td[data-date]")?.forEach(el => {
-		el.textContent = new Date(el.getAttribute("data-date")).toLocaleDateString('pt-br');
-	});
+  document.querySelectorAll("td[data-date]")?.forEach(el => {
+    el.textContent = new Date(el.getAttribute("data-date")).toLocaleDateString('pt-br');
+  });
 
-	document.querySelectorAll("td[data-price]")?.forEach(el => {
-		const priceCents = Number(el.getAttribute('data-price'))
-		const priceBrl = Number.isNaN(priceCents) ? 0 : priceCents / 100
-		el.textContent = priceBrl.toLocaleString('pt-br', { style: "currency", currency: 'brl' })
-	});
+  document.querySelectorAll("td[data-price]")?.forEach(el => {
+    const priceCents = Number(el.getAttribute('data-price'))
+    const priceBrl = Number.isNaN(priceCents) ? 0 : priceCents / 100
+    el.textContent = priceBrl.toLocaleString('pt-br', { style: "currency", currency: 'brl' })
+  });
 </script>
 {% endblock scripts %}
