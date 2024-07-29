@@ -7,6 +7,7 @@ insert into product(id, catalog_id, name, price, kind, created_at, updated_at)
 values
     -- add to Burgers catalog
     ('0190ec14-0af8-71d1-9554-f1e5249ae3a2', '0190ec30-286b-7211-aadb-003fc0449734', 'Cheese Burger', 2000, 'burger', now(), now()),
+    ('0190fe96-917c-7ec2-a1cf-831f117df95a', '0190ec30-286b-7211-aadb-003fc0449734', 'Cheese Salad', 2000, 'burger', now(), now()),
     -- add to Vegan catalog
     ('0190ec15-7985-7e62-aaca-d65c07e6d2e5', '0190ec30-7e38-75c0-a207-13c52449957d', 'Caesar Salad', 1630, 'vegan', now(), now());
 

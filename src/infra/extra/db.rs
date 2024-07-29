@@ -114,3 +114,184 @@ impl extra::Repository for PgExtras {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sqlx::PgPool;
+
+    use domain::extra::Repository;
+    use domain::metadata;
+
+    use super::*;
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn all_method_works(pool: PgPool) {
+        let result = PgExtras::new(pool).all().await;
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().len(), 2);
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn create_method_works(pool: PgPool) {
+        let extra = extra::Extra::new(
+            extra::Name::new("Fork").expect("Valid extra name"),
+            extra::Price::from_cents(150),
+        );
+
+        let result = PgExtras::new(pool).create(&extra).await;
+        assert!(result.is_ok());
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn create_with_id_conflict(pool: PgPool) {
+        use extra::{ConflictKind, Error};
+
+        let id = extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+            .expect("Valid extra id from fixtures");
+
+        let extra = extra::Extra::config(extra::Config {
+            id,
+            name: extra::Name::new("Fork").expect("Valid extra name"),
+            price: extra::Price::from_cents(150),
+            metadata: metadata::Metadata::new(),
+        });
+
+        let result = PgExtras::new(pool).create(&extra).await;
+        assert!(matches!(result, Err(Error::Conflict(ConflictKind::Id(err_id))) if err_id == id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn create_with_name_conflict(pool: PgPool) {
+        use extra::{ConflictKind, Error};
+
+        let name = extra::Name::new("Cheese").expect("Valid extra name from fixtures");
+        let extra = extra::Extra::new(name.clone(), extra::Price::from_cents(800));
+
+        let result = PgExtras::new(pool).create(&extra).await;
+        assert!(
+            matches!(result, Err(Error::Conflict(ConflictKind::Name(err_name))) if err_name == name)
+        );
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn delete_method_works(pool: PgPool) {
+        let id = extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+            .expect("Valid extra id from fixtures");
+
+        let result = PgExtras::new(pool).delete(id).await;
+        assert!(matches!(result, Ok(extra) if extra.id() == id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn delete_with_not_found(pool: PgPool) {
+        use extra::Error;
+
+        let id = extra::Id::parse_str("0190f5d0-0209-7a43-9a57-e091e56493a4")
+            .expect("Valid extra id not in fixtures");
+
+        let result = PgExtras::new(pool).delete(id).await;
+        assert!(matches!(result, Err(Error::NotFound(err_id)) if err_id == id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_method_works(pool: PgPool) {
+        let id = extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+            .expect("Valid extra id from fixures");
+
+        let result = PgExtras::new(pool).find(id).await;
+        assert_eq!(result.ok().map(|extra| extra.id()), Some(id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_with_not_found(pool: PgPool) {
+        use extra::Error;
+
+        let id = extra::Id::parse_str("0190f5e1-5495-7391-9984-8997dbe367c6")
+            .expect("Valid extra id not in fixtures");
+
+        let result = PgExtras::new(pool).find(id).await;
+        assert!(matches!(result, Err(Error::NotFound(err_id)) if err_id == id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_many_method_works(pool: PgPool) {
+        let ids = vec![
+            extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+                .expect("Valid extra id from fixtures"),
+            extra::Id::parse_str("0190eb06-f512-7302-a037-a223a9deb4e0")
+                .expect("Valid extra id from fixtures"),
+        ];
+
+        let result = PgExtras::new(pool).find_many(&ids).await;
+        let extras = result.ok().unwrap_or_default();
+        let extras_ids = extras.iter().map(extra::Extra::id).collect::<Vec<_>>();
+        assert_eq!(extras_ids, ids);
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_many_with_not_found(pool: PgPool) {
+        use extra::Error;
+
+        let not_found_id = extra::Id::parse_str("0190f5e1-5495-7391-9984-8997dbe367c6")
+            .expect("Valid extra id not in fixtures");
+
+        let ids = vec![
+            extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+                .expect("Valid extra id from fixtures"),
+            extra::Id::parse_str("0190eb06-f512-7302-a037-a223a9deb4e0")
+                .expect("Valid extra id from fixtures"),
+            not_found_id,
+        ];
+
+        let result = PgExtras::new(pool).find_many(&ids).await;
+        assert!(matches!(result, Err(Error::NotFound(err_id)) if err_id == not_found_id));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn update_method_works(pool: PgPool) {
+        let extra = extra::Extra::config(extra::Config {
+            id: extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+                .expect("Valid extra id from fixtures"),
+            name: extra::Name::new("Cheddar").expect("Valid extra name"),
+            price: extra::Price::from_cents(1200),
+            metadata: metadata::Metadata::new(),
+        });
+
+        let result = PgExtras::new(pool).update(&extra).await;
+        assert!(result.is_ok());
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn update_with_not_found(pool: PgPool) {
+        use extra::Error;
+
+        let extra = extra::Extra::config(extra::Config {
+            id: extra::Id::parse_str("0190f5e1-5495-7391-9984-8997dbe367c6")
+                .expect("Valid extra id not in fixtures"),
+            name: extra::Name::new("Cheddar").expect("Valid extra name"),
+            price: extra::Price::from_cents(1200),
+            metadata: metadata::Metadata::new(),
+        });
+
+        let result = PgExtras::new(pool).update(&extra).await;
+        assert!(matches!(result, Err(Error::NotFound(err_id)) if err_id == extra.id()));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn update_with_name_conflict(pool: PgPool) {
+        use extra::{ConflictKind, Error};
+
+        let extra = extra::Extra::config(extra::Config {
+            id: extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
+                .expect("Valid extra id from fixtures"),
+            name: extra::Name::new("Sauce").expect("Valid extra name from fixtures"),
+            price: extra::Price::from_cents(600),
+            metadata: metadata::Metadata::new(),
+        });
+
+        let result = PgExtras::new(pool).update(&extra).await;
+        assert!(
+            matches!(result, Err(Error::Conflict(ConflictKind::Name(err_name))) if err_name == extra.name)
+        );
+    }
+}
