@@ -1,3 +1,6 @@
+{% import "./components/icons.j2" as icons %}
+{% import "./components/form.j2" as form %}
+
 <div id="extras-table" class="flex flex-col gap-2">
   <table class="table table-lg">
     <thead>
@@ -5,6 +8,7 @@
         <th>Nome</th>
         <th>Preço</th>
         <th>Criado em</th>
+        <th></th>
       </tr>
     </thead>
 
@@ -12,10 +16,45 @@
       {% for extra in extras %}
       <tr>
         <td>{{ extra.name }}</td>
-        <td data-price="{{ extra.price }}"></td>
-        <td data-date="{{ extra.created_at }}"></td>
+        <td data-price>{{ extra.price }}</td>
+        <td data-date>{{ extra.created_at }}</td>
+        <td class="w-8">
+          <div class="dropdown dropdown-end">
+            <div class="btn btn-ghost btn-sm" tabindex="0" role="button">
+              {% call icons::ellipsis() %}
+            </div>
+
+            <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] shadow">
+              <li>
+                <a onclick="update_extra_modal.showModal()" hx-get="/dashboard/extra/{{ extra.id }}/update"
+                  hx-target="#update_extra_modal_content" hx-trigger="click" hx-swap="innerHTML">
+                  {% call icons::pencil_square() %}
+                  Editar
+                </a>
+              </li>
+
+              <li>
+                <a onclick="delete_extra_modal.showModal()" hx-get="/dashboard/extras/{{ extra.id }}/delete"
+                  hx-target="#delete_extra_modal_content" hx-trigger="click" hx-swap="innerHTML">
+                  {% call icons::trash() %}
+                  Excluir
+                </a>
+              </li>
+            </ul>
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <dialog id="delete_extra_modal" class="modal">
+    <div id="delete_extra_modal_content" class="modal-box">
+    </div>
+  </dialog>
+
+  <dialog id="update_extra_modal" class="modal">
+    <div id="update_extra_modal_content" class="modal-box">
+    </div>
+  </dialog>
 </div>

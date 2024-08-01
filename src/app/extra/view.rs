@@ -34,11 +34,53 @@ impl<'a> ExtraView<'a> {
 #[derive(Clone, Debug, Template)]
 #[template(path = "./pages/extras/index.j2")]
 pub struct ListTempl<'a> {
-    pub extras: Vec<ExtraView<'a>>,
+    extras: Vec<ExtraView<'a>>,
 }
 
 impl<'a> ListTempl<'a> {
-    pub fn try_to_html(self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn new(extras: Vec<ExtraView<'a>>) -> Self {
+        Self { extras }
+    }
+}
+
+impl<'a> ListTempl<'a> {
+    pub fn try_to_html(&self) -> Result<String, Box<dyn std::error::Error>> {
+        self.render().map_err(Box::from)
+    }
+}
+
+#[derive(Clone, Debug, Template)]
+#[template(path = "./pages/extras/delete-modal.j2")]
+pub struct DeleteModalTempl<'a> {
+    extra: ExtraView<'a>,
+}
+
+impl<'a> DeleteModalTempl<'a> {
+    pub fn new(extra: ExtraView<'a>) -> Self {
+        Self { extra }
+    }
+}
+
+impl<'a> DeleteModalTempl<'a> {
+    pub fn try_to_html(&self) -> Result<String, Box<dyn std::error::Error>> {
+        self.render().map_err(Box::from)
+    }
+}
+
+#[derive(Clone, Debug, Template)]
+#[template(path = "./pages/extras/update-modal.j2")]
+pub struct UpdateModalView<'a> {
+    extra: ExtraView<'a>,
+}
+
+impl<'a> UpdateModalView<'a> {
+    pub fn new(extra: ExtraView<'a>) -> Self {
+        Self { extra }
+    }
+}
+
+impl<'a> UpdateModalView<'a> {
+    pub fn try_to_html(&self) -> Result<String, Box<dyn std::error::Error>> {
         self.render().map_err(Box::from)
     }
 }

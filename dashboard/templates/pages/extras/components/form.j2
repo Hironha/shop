@@ -1,0 +1,20 @@
+{% macro fields(name, price) %}
+{% let price_brl = format!("R$ {p:.2}", p = (price as f32) / 100.0).replace(".", ",") %}
+
+<div class="flex flex-col gap-4">
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">Nome</span>
+    </div>
+    <input name="name" placeholder="Nome" class="input input-bordered w-full" value="{{ name }}" />
+  </label>
+
+  <label class="form-control w-full">
+    <div class="label">
+      <span class="label-text">Preço</span>
+    </div>
+    <input name="price" placeholder="R$ 0,00" class="input input-bordered w-full" value="{{ price_brl }}" />
+  </label>
+</div>
+
+{% endmacro fields %}

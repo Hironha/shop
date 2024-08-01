@@ -1,6 +1,6 @@
 mod dto;
 
-pub use dto::{CreateInput, DeleteInput, UpdateInput};
+pub use dto::{CreateInput, DeleteInput, FindInput, UpdateInput};
 
 use domain::extra;
 
@@ -29,6 +29,10 @@ impl<T: extra::Repository> ExtraService<T> {
 
     pub async fn delete(&mut self, input: DeleteInput) -> Result<extra::Extra, extra::Error> {
         self.extras.delete(input.id).await
+    }
+
+    pub async fn find(&self, input: FindInput) -> Result<extra::Extra, extra::Error> {
+        self.extras.find(input.id).await
     }
 
     pub async fn update(&mut self, input: UpdateInput) -> Result<extra::Extra, extra::Error> {

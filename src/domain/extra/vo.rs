@@ -63,7 +63,10 @@ impl Name {
     ///
     /// Returns an [`Err`] if `name` does not fit into [`Name`] constraints
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
-        let name: String = name.into();
+        let mut name: String = name.into();
+        name.drain(..name.len() - name.trim_start().len());
+        name.drain(name.trim_end().len()..);
+
         if name.len() > Self::MAX_LEN {
             return Err(NameError::Length);
         }
@@ -138,4 +141,29 @@ pub enum IdError {
 pub enum NameError {
     #[error("Product extra name cannot have more than {len} characters", len = Name::MAX_LEN)]
     Length,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_name_works() {
+        let simple = ["Cheddar", "Salad", "Sugar"];
+        let composed = ["Big Cheddar", "Carrot Salad", "Brown Sugar"];
+        for n in simple.into_iter().chain(composed) {
+            assert!(Name::new(n).is_ok());
+        }
+    }
+
+    #[test]
+    fn new_name_with_whitespaces() {
+        let at_start = [" Cheddar", "  Salad", "   Sugar"];
+        let at_end = ["Cheddar ", "Salad  ", "Sugar    "];
+        let both = [" Cheddar ", "  Feijão  ", "   Pó de guaraná   "];
+        for n in at_start.into_iter().chain(at_end).chain(both) {
+            let name = Name::new(n);
+            assert_eq!(name.as_ref().map(Name::as_str), Ok(n.trim()));
+        }
+    }
 }

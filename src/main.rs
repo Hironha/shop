@@ -83,7 +83,22 @@ async fn main() {
             Router::new()
                 .route("/assets/main.css", routing::get(serve_css))
                 .route("/catalogs", routing::get(catalog_dashboard::list))
-                .route("/extras", routing::get(extra_dashboard::all))
+                .route(
+                    "/extras",
+                    routing::get(extra_dashboard::all).post(extra_dashboard::create),
+                )
+                .route(
+                    "/extras/:id",
+                    routing::delete(extra_dashboard::delete).put(extra_dashboard::update),
+                )
+                .route(
+                    "/extra/:id/update",
+                    routing::get(extra_dashboard::update_view),
+                )
+                .route(
+                    "/extras/:id/delete",
+                    routing::get(extra_dashboard::delete_view),
+                )
                 .route("/health-check", routing::get(health_check))
                 .fallback(routing::any(not_found)),
         )

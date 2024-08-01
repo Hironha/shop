@@ -11,6 +11,11 @@ pub struct DeleteInput {
     pub id: extra::Id,
 }
 
+#[derive(Clone, Debug)]
+pub struct FindInput {
+    pub id: extra::Id,
+}
+
 pub struct UpdateInput {
     pub id: extra::Id,
     pub name: extra::Name,
