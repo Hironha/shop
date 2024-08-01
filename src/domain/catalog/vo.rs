@@ -64,7 +64,10 @@ impl Name {
     ///
     /// Returns an [`Err`] if `name` is not a valid [`Name`]
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
-        let name: String = name.into();
+        let mut name: String = name.into();
+        name.drain(..name.len() - name.trim_start().len());
+        name.drain(name.trim_end().len()..);
+
         if name.len() > Self::MAX_LEN {
             return Err(NameError::Length);
         }
@@ -98,7 +101,10 @@ impl Description {
     ///
     /// Returns an [`Err`] if `description` is not a valid [`Description`]
     pub fn new(description: impl Into<String>) -> Result<Self, DescriptionError> {
-        let description: String = description.into();
+        let mut description: String = description.into();
+        description.drain(..description.len() - description.trim_start().len());
+        description.drain(description.trim_end().len()..);
+
         if description.len() > Self::MAX_LEN {
             return Err(DescriptionError::Length);
         }
@@ -188,7 +194,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_id() {
+    fn parse_id_works() {
         let valid_id_str = Id::new().to_string();
         assert!(Id::parse_str(&valid_id_str).is_ok());
 
@@ -200,36 +206,32 @@ mod tests {
     }
 
     #[test]
-    fn parse_name() {
-        let simple_names = vec!["Test", "Hamburgers", "Sushi", "Combos"];
-        let compound_names = vec!["Cheese Burgers", "Pratos Caseiros", "Desconto promocional"];
-
-        for name in simple_names.into_iter().chain(compound_names) {
-            assert!(Name::new(name).is_ok());
+    fn new_name_works() {
+        let simple = ["Test", "Hamburgers", "Sushi", "Combos"];
+        let compound = ["Chees Burgers", "Promotional Products"];
+        let untrimmed = [" Test ", " Hamburgers", "Sushi ", " Cheese Burgers "];
+        for n in simple.into_iter().chain(compound).chain(untrimmed) {
+            let name = Name::new(n);
+            assert!(name.is_ok());
+            assert_eq!(name.unwrap().as_str(), n.trim());
         }
 
-        let big_name = vec!["a"; Name::MAX_LEN + 1].into_iter().collect::<String>();
-        assert_eq!(Name::new(big_name), Err(NameError::Length));
+        let big = ["a"; Name::MAX_LEN + 1].join("");
+        assert_eq!(Name::new(big), Err(NameError::Length));
     }
 
     #[test]
-    fn parse_description() {
-        let simple_descriptions = vec![
-            "All products 100% vegan!",
-            "Best fried cheese burgers available",
-        ];
-
-        for description in simple_descriptions {
-            assert!(Description::new(description).is_ok());
+    fn new_description_works() {
+        let simple = ["Test", "Description"];
+        let composed = ["All products 100% vegan!", "Best burgers in the country"];
+        let untrimmed = [" Test ", "Description ", " Best burgers"];
+        for d in simple.into_iter().chain(composed).chain(untrimmed) {
+            let description = Description::new(d);
+            assert!(description.is_ok());
+            assert_eq!(description.unwrap().as_str(), d.trim());
         }
 
-        let big_description = vec!["a"; Description::MAX_LEN + 1]
-            .into_iter()
-            .collect::<String>();
-
-        assert_eq!(
-            Description::new(big_description),
-            Err(DescriptionError::Length)
-        );
+        let big = ["a"; Description::MAX_LEN + 1].join("");
+        assert_eq!(Description::new(big), Err(DescriptionError::Length));
     }
 }
