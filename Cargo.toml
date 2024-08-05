@@ -21,6 +21,7 @@ lto = "thin"
 strip = "symbols"
 
 [dependencies]
+argon2 = "0.5.3"
 axum = "0.7.5"
 rust_decimal = "1.35.0"
 serde = { version = "1.0.204", features = ["derive"] }

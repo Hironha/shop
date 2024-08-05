@@ -1,6 +1,7 @@
 pub mod catalog;
 pub mod extra;
 pub mod product;
+pub mod user;
 
 use serde::Serialize;
 use time::OffsetDateTime;

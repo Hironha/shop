@@ -7,3 +7,4 @@ pub mod catalog;
 pub mod core;
 pub mod extra;
 pub mod product;
+pub mod user;
