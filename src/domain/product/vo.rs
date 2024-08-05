@@ -65,7 +65,10 @@ impl Name {
     ///
     /// Returns an [`Err`] if `name` does not fit into [`Name`] constraints
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
-        let name: String = name.into();
+        let mut name: String = name.into();
+        name.drain(..name.len() - name.trim_start().len());
+        name.drain(name.trim_end().len()..);
+
         if name.len() > Self::MAX_LEN {
             return Err(NameError::Length);
         }
