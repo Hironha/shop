@@ -26,9 +26,9 @@ impl Metadata {
     pub fn configured(
         created_at: OffsetDateTime,
         updated_at: OffsetDateTime,
-    ) -> Result<Self, ConfigError> {
+    ) -> Result<Self, ConfigMetadataError> {
         if created_at > updated_at {
-            return Err(ConfigError);
+            return Err(ConfigMetadataError);
         }
 
         Ok(Self {
@@ -62,4 +62,4 @@ impl Default for Metadata {
 
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 #[error("Metadata created at cannot be bigger than updated at")]
-pub struct ConfigError;
+pub struct ConfigMetadataError;

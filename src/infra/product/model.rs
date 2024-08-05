@@ -4,7 +4,7 @@ use sqlx::FromRow;
 use time::OffsetDateTime;
 
 use domain::catalog;
-use domain::metadata;
+use domain::core::metadata;
 use domain::product;
 
 use crate::infra::extra::ExtraModel;

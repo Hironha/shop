@@ -1,5 +1,5 @@
 use super::{Id, Name, Price};
-use crate::metadata;
+use crate::core::metadata;
 
 #[derive(Clone, Debug)]
 pub struct Extra {

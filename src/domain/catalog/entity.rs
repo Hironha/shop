@@ -1,5 +1,5 @@
 use super::{Description, Id, Name};
-use crate::metadata;
+use crate::core::metadata;
 
 #[derive(Clone, Debug)]
 pub struct Catalog {

@@ -112,7 +112,7 @@ impl<'a> UpdateQuery<'a> {
 mod tests {
     use sqlx::PgPool;
 
-    use domain::metadata;
+    use domain::core::metadata;
 
     use super::*;
 

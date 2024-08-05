@@ -3,8 +3,8 @@ use sqlx::types::{Decimal, Uuid};
 use sqlx::FromRow;
 use time::OffsetDateTime;
 
+use domain::core::metadata;
 use domain::extra;
-use domain::metadata;
 
 #[derive(Clone, Debug, Deserialize, FromRow)]
 pub struct ExtraModel {

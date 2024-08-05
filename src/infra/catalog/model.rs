@@ -4,7 +4,7 @@ use sqlx::FromRow;
 use time::OffsetDateTime;
 
 use domain::catalog;
-use domain::metadata;
+use domain::core::metadata;
 
 use crate::infra::product::ProductModel;
 
@@ -21,9 +21,7 @@ pub struct CatalogWithProductsModel {
 }
 
 impl CatalogWithProductsModel {
-    pub fn try_into_entity(
-        self,
-    ) -> Result<catalog::ProductCatalog, Box<dyn std::error::Error>> {
+    pub fn try_into_entity(self) -> Result<catalog::ProductCatalog, Box<dyn std::error::Error>> {
         let name = catalog::Name::new(self.name)?;
         let description = self
             .description

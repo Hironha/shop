@@ -119,8 +119,8 @@ impl extra::Repository for PgExtras {
 mod tests {
     use sqlx::PgPool;
 
+    use domain::core::metadata;
     use domain::extra::Repository;
-    use domain::metadata;
 
     use super::*;
 

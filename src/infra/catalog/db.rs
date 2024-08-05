@@ -114,7 +114,7 @@ mod tests {
     use sqlx::PgPool;
 
     use domain::catalog::Repository;
-    use domain::metadata;
+    use domain::core::metadata;
 
     use super::*;
 

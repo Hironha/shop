@@ -135,7 +135,7 @@ impl product::Repository for PgProducts {
 mod tests {
     use sqlx::PgPool;
 
-    use domain::metadata;
+    use domain::core::metadata;
     use domain::product::Repository;
 
     use super::*;

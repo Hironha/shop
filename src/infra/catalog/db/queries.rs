@@ -129,8 +129,9 @@ impl<'a> UpdateQuery<'a> {
 
 #[cfg(test)]
 mod tests {
-    use domain::metadata;
     use sqlx::PgPool;
+
+    use domain::core::metadata;
 
     use super::*;
 

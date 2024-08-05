@@ -1,6 +1,6 @@
 use super::{Extras, Id, Kind, Name, Price};
 use crate::catalog;
-use crate::metadata;
+use crate::core::metadata;
 
 #[derive(Clone, Debug)]
 pub struct Product {
