@@ -3,6 +3,7 @@ use std::fmt;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::core::string::trim_in_place;
 use crate::product;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -65,8 +66,7 @@ impl Name {
     /// Returns an [`Err`] if `name` is not a valid [`Name`]
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
         let mut name: String = name.into();
-        name.drain(..name.len() - name.trim_start().len());
-        name.drain(name.trim_end().len()..);
+        trim_in_place(&mut name);
 
         if name.len() > Self::MAX_LEN {
             return Err(NameError::Length);
@@ -102,9 +102,8 @@ impl Description {
     /// Returns an [`Err`] if `description` is not a valid [`Description`]
     pub fn new(description: impl Into<String>) -> Result<Self, DescriptionError> {
         let mut description: String = description.into();
-        description.drain(..description.len() - description.trim_start().len());
-        description.drain(description.trim_end().len()..);
-
+        trim_in_place(&mut description);
+        
         if description.len() > Self::MAX_LEN {
             return Err(DescriptionError::Length);
         }

@@ -4,6 +4,7 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::core::string::trim_in_place;
 use crate::extra;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -66,8 +67,7 @@ impl Name {
     /// Returns an [`Err`] if `name` does not fit into [`Name`] constraints
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
         let mut name: String = name.into();
-        name.drain(..name.len() - name.trim_start().len());
-        name.drain(name.trim_end().len()..);
+        trim_in_place(&mut name);
 
         if name.len() > Self::MAX_LEN {
             return Err(NameError::Length);
