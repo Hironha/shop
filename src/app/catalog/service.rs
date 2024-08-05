@@ -19,22 +19,22 @@ impl<T: catalog::Repository> CatalogService<T> {
     pub async fn create(
         &mut self,
         input: CreateInput,
-    ) -> Result<catalog::CatalogProducts, catalog::Error> {
+    ) -> Result<catalog::ProductCatalog, catalog::Error> {
         let catalog = catalog::Catalog::new(input.name, input.description);
         self.catalogs.create(&catalog).await?;
 
         let products = catalog::Products::default();
-        Ok(catalog::CatalogProducts::new(catalog, products))
+        Ok(catalog::ProductCatalog::new(catalog, products))
     }
 
     pub async fn delete(
         &mut self,
         input: DeleteInput,
-    ) -> Result<catalog::CatalogProducts, catalog::Error> {
+    ) -> Result<catalog::ProductCatalog, catalog::Error> {
         self.catalogs.delete(input.id).await
     }
 
-    pub async fn find(&self, input: FindInput) -> Result<catalog::CatalogProducts, catalog::Error> {
+    pub async fn find(&self, input: FindInput) -> Result<catalog::ProductCatalog, catalog::Error> {
         self.catalogs.find(input.id).await
     }
 
@@ -50,17 +50,17 @@ impl<T: catalog::Repository> CatalogService<T> {
     pub async fn update(
         &mut self,
         input: UpdateInput,
-    ) -> Result<catalog::CatalogProducts, catalog::Error> {
-        let mut catalog_products = self.catalogs.find(input.id).await?;
-        catalog_products.catalog.name = input.name;
-        catalog_products.catalog.description = input.description;
-        catalog_products.catalog.metadata.update();
+    ) -> Result<catalog::ProductCatalog, catalog::Error> {
+        let mut product_catalog = self.catalogs.find(input.id).await?;
+        product_catalog.catalog.name = input.name;
+        product_catalog.catalog.description = input.description;
+        product_catalog.catalog.metadata.update();
 
-        self.catalogs.update(&catalog_products.catalog).await?;
+        self.catalogs.update(&product_catalog.catalog).await?;
 
-        Ok(catalog::CatalogProducts::new(
-            catalog_products.catalog,
-            catalog_products.products,
+        Ok(catalog::ProductCatalog::new(
+            product_catalog.catalog,
+            product_catalog.products,
         ))
     }
 }

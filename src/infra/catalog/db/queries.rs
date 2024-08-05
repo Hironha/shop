@@ -195,7 +195,7 @@ mod tests {
 
     #[sqlx::test(fixtures("seed"))]
     async fn update_query_works(pool: PgPool) {
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
                 .expect("Valid catalog id from fixtures"),
             name: catalog::Name::new("Burgers Updated").expect("Valid catalog name"),

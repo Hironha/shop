@@ -172,7 +172,7 @@ mod tests {
 
     #[sqlx::test(fixtures("seed"))]
     async fn update_query_works(pool: PgPool) {
-        let extra = extra::Extra::config(extra::Config {
+        let extra = extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
                 .expect("Valid extra id from fixtures"),
             name: extra::Name::new("Salad").expect("Salad is a valid extra name"),

@@ -34,7 +34,7 @@ impl Product {
     }
 
     #[must_use]
-    pub fn config(config: Config) -> Self {
+    pub fn config(config: ProductConfig) -> Self {
         Self {
             id: config.id,
             catalog_id: config.catalog_id,
@@ -60,7 +60,7 @@ impl Product {
 }
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct ProductConfig {
     pub id: Id,
     pub catalog_id: catalog::Id,
     pub name: Name,

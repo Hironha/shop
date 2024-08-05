@@ -47,7 +47,7 @@ impl catalog::Repository for PgCatalogs {
         Ok(())
     }
 
-    async fn delete(&self, id: catalog::Id) -> Result<catalog::CatalogProducts, catalog::Error> {
+    async fn delete(&self, id: catalog::Id) -> Result<catalog::ProductCatalog, catalog::Error> {
         let query = queries::DeleteQuery { id };
         let model = query.exec(&self.pool).await.map_err(|err| match err {
             sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
@@ -57,7 +57,7 @@ impl catalog::Repository for PgCatalogs {
         model.try_into_entity().map_err(catalog::Error::any)
     }
 
-    async fn find(&self, id: catalog::Id) -> Result<catalog::CatalogProducts, catalog::Error> {
+    async fn find(&self, id: catalog::Id) -> Result<catalog::ProductCatalog, catalog::Error> {
         let query = queries::FindQuery { id };
         let model = query.exec(&self.pool).await.map_err(|err| match err {
             sqlx::Error::RowNotFound => catalog::Error::id_not_found(id),
@@ -133,7 +133,7 @@ mod tests {
     async fn create_with_id_conflict(pool: PgPool) {
         use catalog::{ConflictKind, Error};
 
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
                 .expect("Valid catalog id from fixtures"),
             name: catalog::Name::new("Vegetarian").expect("Valid catalog name not in fixtures"),
@@ -151,7 +151,7 @@ mod tests {
     async fn create_with_name_conflict(pool: PgPool) {
         use catalog::{ConflictKind, Error};
 
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190fa37-f4e0-7de0-86a2-7a0d60563f34")
                 .expect("Valid catalog id not in fixtures"),
             name: catalog::Name::new("Burgers").expect("Valid catalog name from fixtures"),
@@ -227,7 +227,7 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn update_method_works(pool: PgPool) {
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190ec30-7e38-75c0-a207-13c52449957d")
                 .expect("Valid catalog id from fixtures"),
             name: catalog::Name::new("Vegetarian").expect("Valid catalog name"),
@@ -257,7 +257,7 @@ mod tests {
     async fn update_with_not_found(pool: PgPool) {
         use catalog::{Error, NotFoundKind};
 
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190fad2-0eab-7753-9b8c-583b79e7e51e")
                 .expect("Valid catalog id not in fixtures"),
             name: catalog::Name::new("Vegetarian").expect("Valid catalog name"),
@@ -276,7 +276,7 @@ mod tests {
     async fn update_with_name_conflict(pool: PgPool) {
         use catalog::{ConflictKind, Error};
 
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::parse_str("0190ec30-7e38-75c0-a207-13c52449957d")
                 .expect("Valid catalog id from fixtures"),
             name: catalog::Name::new("Burgers").expect("Valid catalog name from fixtures"),

@@ -23,7 +23,7 @@ pub struct CatalogWithProductsModel {
 impl CatalogWithProductsModel {
     pub fn try_into_entity(
         self,
-    ) -> Result<catalog::CatalogProducts, Box<dyn std::error::Error>> {
+    ) -> Result<catalog::ProductCatalog, Box<dyn std::error::Error>> {
         let name = catalog::Name::new(self.name)?;
         let description = self
             .description
@@ -40,13 +40,13 @@ impl CatalogWithProductsModel {
         let products = catalog::Products::new(products)?;
 
         let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
-        let catalog = catalog::Catalog::config(catalog::Config {
+        let catalog = catalog::Catalog::config(catalog::CatalogConfig {
             id: catalog::Id::from(self.id),
             name,
             description,
             metadata,
         });
 
-        Ok(catalog::CatalogProducts::new(catalog, products))
+        Ok(catalog::ProductCatalog::new(catalog, products))
     }
 }

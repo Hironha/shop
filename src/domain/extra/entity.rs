@@ -21,7 +21,7 @@ impl Extra {
     }
 
     #[must_use]
-    pub fn config(config: Config) -> Self {
+    pub fn config(config: ExtraConfig) -> Self {
         Self {
             id: config.id,
             name: config.name,
@@ -39,7 +39,7 @@ impl Extra {
 }
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct ExtraConfig {
     pub id: Id,
     pub name: Name,
     pub price: Price,

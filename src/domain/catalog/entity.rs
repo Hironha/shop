@@ -21,7 +21,7 @@ impl Catalog {
     }
 
     #[must_use]
-    pub fn config(config: Config) -> Self {
+    pub fn config(config: CatalogConfig) -> Self {
         Self {
             id: config.id,
             name: config.name,
@@ -39,7 +39,7 @@ impl Catalog {
 }
 
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct CatalogConfig {
     pub id: Id,
     pub name: Name,
     pub description: Option<Description>,

@@ -226,7 +226,7 @@ mod tests {
 
     #[sqlx::test(fixtures("seed"))]
     async fn update_query_works(pool: PgPool) {
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::parse_str("0190ec14-0af8-71d1-9554-f1e5249ae3a2")
                 .expect("Valid product id from fixtures"),
             catalog_id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
@@ -259,7 +259,7 @@ mod tests {
     }
 
     fn get_mocked_cheddar() -> extra::Extra {
-        extra::Extra::config(extra::Config {
+        extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190ec13-15cc-7f53-bc0f-d60f0beea824")
                 .expect("Cheedar id from seed fixtures"),
             name: extra::Name::new("Cheddar").expect("Valid extra name"),
@@ -269,7 +269,7 @@ mod tests {
     }
 
     fn get_mocked_hot_sauce() -> extra::Extra {
-        extra::Extra::config(extra::Config {
+        extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190ec10-4aa7-7552-ba8f-df997d9f8a8e")
                 .expect("Hot sauce id from seed fixtures"),
             name: extra::Name::new("Hot Sauce").expect("Valid extra name"),

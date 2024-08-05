@@ -159,7 +159,7 @@ mod tests {
     async fn create_with_id_conflict(pool: PgPool) {
         use product::{ConflictKind, Error};
 
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::parse_str("0190ec14-0af8-71d1-9554-f1e5249ae3a2")
                 .expect("Valid product id from fixtures"),
             catalog_id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
@@ -292,7 +292,7 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn update_method_works(pool: PgPool) {
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::parse_str("0190ec14-0af8-71d1-9554-f1e5249ae3a2")
                 .expect("Valid product id from fixtures"),
             catalog_id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
@@ -324,7 +324,7 @@ mod tests {
     async fn update_with_not_found(pool: PgPool) {
         use product::{Error, NotFoundKind};
 
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::parse_str("0190fe6f-9240-77b2-8046-70af5be9c6bd")
                 .expect("Valid product id not in fixtures1"),
             catalog_id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")
@@ -347,7 +347,7 @@ mod tests {
     async fn update_with_name_conflict(pool: PgPool) {
         use product::{ConflictKind, Error};
 
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::parse_str("0190ec14-0af8-71d1-9554-f1e5249ae3a2")
                 .expect("Valid product id from fixtures"),
             catalog_id: catalog::Id::parse_str("0190ec30-286b-7211-aadb-003fc0449734")

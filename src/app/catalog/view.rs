@@ -17,7 +17,7 @@ pub struct CatalogProductsView<'a> {
 }
 
 impl<'a> CatalogProductsView<'a> {
-    pub fn new(value: &'a catalog::CatalogProducts) -> Self {
+    pub fn new(value: &'a catalog::ProductCatalog) -> Self {
         Self {
             id: value.catalog.id().uuid(),
             name: value.catalog.name.as_str(),

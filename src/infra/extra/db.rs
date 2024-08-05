@@ -149,7 +149,7 @@ mod tests {
         let id = extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
             .expect("Valid extra id from fixtures");
 
-        let extra = extra::Extra::config(extra::Config {
+        let extra = extra::Extra::config(extra::ExtraConfig {
             id,
             name: extra::Name::new("Fork").expect("Valid extra name"),
             price: extra::Price::from_cents(150),
@@ -249,7 +249,7 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn update_method_works(pool: PgPool) {
-        let extra = extra::Extra::config(extra::Config {
+        let extra = extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
                 .expect("Valid extra id from fixtures"),
             name: extra::Name::new("Cheddar").expect("Valid extra name"),
@@ -265,7 +265,7 @@ mod tests {
     async fn update_with_not_found(pool: PgPool) {
         use extra::Error;
 
-        let extra = extra::Extra::config(extra::Config {
+        let extra = extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190f5e1-5495-7391-9984-8997dbe367c6")
                 .expect("Valid extra id not in fixtures"),
             name: extra::Name::new("Cheddar").expect("Valid extra name"),
@@ -281,7 +281,7 @@ mod tests {
     async fn update_with_name_conflict(pool: PgPool) {
         use extra::{ConflictKind, Error};
 
-        let extra = extra::Extra::config(extra::Config {
+        let extra = extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::parse_str("0190eaf5-c290-7443-b6a6-d22ce2a0fcb1")
                 .expect("Valid extra id from fixtures"),
             name: extra::Name::new("Sauce").expect("Valid extra name from fixtures"),

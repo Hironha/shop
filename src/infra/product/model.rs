@@ -36,7 +36,7 @@ impl ProductModel {
         let kind = product::Kind::parse_str(&self.kind)?;
         let extras = product::Extras::new(extras_vec)?;
         let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
-        let product = product::Product::config(product::Config {
+        let product = product::Product::config(product::ProductConfig {
             id: product::Id::from(self.id),
             catalog_id: catalog::Id::from(self.catalog_id),
             name,

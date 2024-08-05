@@ -21,7 +21,7 @@ impl ExtraModel {
     pub fn try_into_entity(self) -> Result<extra::Extra, Box<dyn std::error::Error>> {
         let name = extra::Name::new(self.name)?;
         let metadata = metadata::Metadata::configured(self.created_at, self.updated_at)?;
-        let product_extra = extra::Extra::config(extra::Config {
+        let product_extra = extra::Extra::config(extra::ExtraConfig {
             id: extra::Id::from(self.id),
             name,
             price: extra::Price::new(self.price),
