@@ -24,12 +24,10 @@ pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) ->
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let description = match body.description.map(catalog::Description::new).transpose() {
         Ok(description) => description,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = CreateInput { name, description };
 
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
@@ -54,7 +52,6 @@ pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) ->
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = DeleteInput { id };
 
     let mut service = CatalogService::new(PgCatalogs::new(ctx.pool));
@@ -79,7 +76,6 @@ pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> Res
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = FindInput { id };
 
     let service = CatalogService::new(PgCatalogs::new(ctx.pool));
@@ -105,13 +101,12 @@ pub async fn list(State(ctx): State<Context>, Query(query): Query<ListQuery>) ->
         Some(0) | None => NonZeroU32::new(1).unwrap(),
         Some(page) => NonZeroU32::new(page).expect("Page is not zero"),
     };
-
     let limit = match query.limit {
         Some(0) | None => NonZeroU8::new(10).unwrap(),
         Some(limit) => NonZeroU8::new(limit).expect("Limit is not zero"),
     };
-
     let input = ListInput { page, limit };
+
     let service = CatalogService::new(PgCatalogs::new(ctx.pool));
     let pagination = match service.list(input).await {
         Ok(pagination) => pagination,
@@ -145,17 +140,14 @@ pub async fn update(
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let name = match catalog::Name::new(body.name) {
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let description = match body.description.map(catalog::Description::new).transpose() {
         Ok(description) => description,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = UpdateInput {
         id,
         name,

@@ -36,7 +36,6 @@ pub async fn create(State(ctx): State<Context>, Json(body): Json<CreateBody>) ->
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = CreateInput {
         name,
         price: extra::Price::from_cents(body.price),
@@ -64,8 +63,8 @@ pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) ->
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = DeleteInput { id };
+
     let mut service = ExtraService::new(PgExtras::new(ctx.pool));
     let deleted_product_extra = match service.delete(input).await {
         Ok(product_extra) => product_extra,
@@ -98,12 +97,10 @@ pub async fn update(
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let name = match extra::Name::new(body.name) {
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = UpdateInput {
         id,
         name,

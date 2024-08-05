@@ -1,4 +1,0 @@
-[general]
-dirs = ["./dashboard/templates"]
-# options: "suppress" | "preserve"
-whitespace = "suppress"

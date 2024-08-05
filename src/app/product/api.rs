@@ -34,22 +34,18 @@ pub async fn create(
         Ok(catalog_id) => catalog_id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let name = match product::Name::new(body.name) {
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let kind = match product::Kind::parse_str(&body.kind) {
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let extras_ids = match ExtrasIds::parse(&body.extras_ids) {
         Ok(extras_ids) => extras_ids,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = CreateInput {
         catalog_id,
         name,
@@ -83,12 +79,10 @@ pub async fn delete(State(ctx): State<Context>, Path(path): Path<DeletePath>) ->
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let catalog_id = match catalog::Id::parse_str(&path.catalog_id) {
         Ok(catalog_id) => catalog_id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = DeleteInput { id, catalog_id };
 
     let pg_products = PgProducts::new(ctx.pool.clone());
@@ -117,12 +111,10 @@ pub async fn find(State(ctx): State<Context>, Path(path): Path<FindPath>) -> imp
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let catalog_id = match catalog::Id::parse_str(&path.id) {
         Ok(catalog_id) => catalog_id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = FindInput { id, catalog_id };
 
     let pg_products = PgProducts::new(ctx.pool.clone());
@@ -163,27 +155,22 @@ pub async fn update(
         Ok(id) => id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let catalog_id = match catalog::Id::parse_str(&path.catalog_id) {
         Ok(catalog_id) => catalog_id,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let name = match product::Name::new(body.name) {
         Ok(name) => name,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let kind = match product::Kind::parse_str(&body.kind) {
         Ok(kind) => kind,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let extras_ids = match ExtrasIds::parse(&body.extras_ids) {
         Ok(extras_ids) => extras_ids,
         Err(err) => return create_validation_error_response(&err).into_response(),
     };
-
     let input = UpdateInput {
         id,
         catalog_id,

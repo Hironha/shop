@@ -16,15 +16,11 @@ path = "src/main.rs"
 debug = false
 strip = "debuginfo"
 
-[profile.dev.package.askama_derive]
-opt-level = 3
-
 [profile.release]
 lto = "thin"
 strip = "symbols"
 
 [dependencies]
-askama = "0.12.1"
 axum = "0.7.5"
 rust_decimal = "1.35.0"
 serde = { version = "1.0.204", features = ["derive"] }

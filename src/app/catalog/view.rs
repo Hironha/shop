@@ -1,4 +1,3 @@
-use askama::Template;
 use serde::Serialize;
 use time::OffsetDateTime;
 use uuid::Uuid;
@@ -59,53 +58,5 @@ impl<'a> PaginationView<'a> {
                 .map(CatalogProductsView::new)
                 .collect(),
         }
-    }
-}
-
-impl<'a> PaginationView<'a> {
-    pub fn pages(&self) -> Vec<u32> {
-        let start = self.page.saturating_sub(2).max(1);
-        let end = self.page.saturating_add(self.remaining_pages().min(2));
-        (start..=end).collect()
-    }
-
-    pub fn has_previous_page(&self) -> bool {
-        self.page > 1
-    }
-
-    pub fn has_next_page(&self) -> bool {
-        self.remaining_pages() > 0
-    }
-
-    pub fn remaining_pages(&self) -> u32 {
-        let pages = self.count.div_ceil(self.limit.into());
-        let remaining = pages.saturating_sub(self.page.into());
-        u32::try_from(remaining).unwrap_or(u32::MAX)
-    }
-}
-
-#[derive(Clone, Debug, Template)]
-#[template(path = "./pages/catalogs/index.j2")]
-pub struct ListPageTempl<'a> {
-    pub pagination: PaginationView<'a>,
-}
-
-impl<'a> ListPageTempl<'a> {
-    pub fn to_html(&self) -> String {
-        // TODO: remove unwrap
-        self.render().unwrap()
-    }
-}
-
-#[derive(Clone, Debug, Template)]
-#[template(path = "./pages/catalogs/table.j2")]
-pub struct ListTempl<'a> {
-    pub pagination: PaginationView<'a>,
-}
-
-impl<'a> ListTempl<'a> {
-    pub fn to_html(&self) -> String {
-        // TODO: remove unwrap
-        self.render().unwrap()
     }
 }
