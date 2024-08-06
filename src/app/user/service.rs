@@ -2,25 +2,25 @@ mod dto;
 pub mod session;
 
 use domain::user;
-use domain::user::password::{Encrypt, PasswordEncrypter};
+use domain::user::password::{Encrypter, Password};
 pub use dto::{LoginInput, RegisterInput};
 
 #[derive(Clone, Debug)]
 pub struct UserService<T, R, S> {
-    encrypter: PasswordEncrypter<T>,
+    encrypter: T,
     users: R,
     sessions: S,
 }
 
 impl<T, R, S> UserService<T, R, S>
 where
-    T: Encrypt,
+    T: Encrypter,
     R: user::Repository,
     S: session::Manager,
 {
     pub fn new(encrypter: T, users: R, sessions: S) -> Self {
         Self {
-            encrypter: PasswordEncrypter::new(encrypter),
+            encrypter,
             users,
             sessions,
         }
@@ -29,7 +29,7 @@ where
 
 impl<T, R, S> UserService<T, R, S>
 where
-    T: Encrypt,
+    T: Encrypter,
     R: user::Repository,
     S: session::Manager,
 {
@@ -59,7 +59,7 @@ where
 
     pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
         let user = user::User::new(input.username, input.email);
-        let password = self.encrypter.encrypt(&input.password);
+        let password = Password::new(&input.password, &self.encrypter);
         self.users.create(&user, &password).await
     }
 

@@ -7,7 +7,7 @@ use domain::user;
 
 use super::service::{LoginInput, RegisterInput, UserService};
 use crate::app::ApiError;
-use crate::infra::{Argon2Encrypt, PgUsers};
+use crate::infra::{Argon2Encrypter, PgUsers};
 use crate::Context;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -34,7 +34,7 @@ pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>
     };
 
     let pg_users = PgUsers::new(ctx.pool);
-    let mut service = UserService::new(Argon2Encrypt::new(), pg_users, ctx.sessions);
+    let mut service = UserService::new(Argon2Encrypter::new(), pg_users, ctx.sessions);
     // TODO: map error into response
     service.register(input).await.unwrap();
 
@@ -58,7 +58,7 @@ pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> R
     };
 
     let pg_users = PgUsers::new(ctx.pool);
-    let mut service = UserService::new(Argon2Encrypt::new(), pg_users, ctx.sessions);
+    let mut service = UserService::new(Argon2Encrypter::new(), pg_users, ctx.sessions);
     // TODO: map error into response
     let session_id = service.login(input).await.unwrap();
     println!("{session_id}");

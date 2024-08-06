@@ -86,21 +86,18 @@ impl user::Repository for PgUsers {
 #[cfg(test)]
 mod tests {
     use domain::core::metadata::Metadata;
-    use domain::user::password::PasswordEncrypter;
     use domain::user::Repository;
 
     use super::*;
-    use crate::infra::Argon2Encrypt;
+    use crate::infra::Argon2Encrypter;
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn create_method_works(pool: PgPool) {
+        let password = Password::new("Test123@", &Argon2Encrypter::new());
         let user = user::User::new(
             user::Username::try_new("Admin").expect("Valid username not in fixtures"),
             user::Email::try_new("admin@admin.com").expect("Valid email not in fixtures"),
         );
-
-        let encrypter = PasswordEncrypter::new(Argon2Encrypt::new());
-        let password = encrypter.encrypt("Test123@");
 
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
@@ -111,6 +108,7 @@ mod tests {
     async fn create_with_id_conflict(pool: PgPool) {
         use domain::user::{ConflictKind, Error};
 
+        let password = Password::new("Test123@", &Argon2Encrypter::new());
         let user = user::User::config(user::UserConfig {
             id: user::Id::parse_str("019128e9-f215-7f81-b053-e8edd437df24")
                 .expect("Valid id from fixtures"),
@@ -119,9 +117,6 @@ mod tests {
             email_verified: true,
             metadata: Metadata::new(),
         });
-
-        let encrypter = PasswordEncrypter::new(Argon2Encrypt::new());
-        let password = encrypter.encrypt("Test123@");
 
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
@@ -132,6 +127,7 @@ mod tests {
     async fn create_with_email_conflict(pool: PgPool) {
         use domain::user::{ConflictKind, Error};
 
+        let password = Password::new("Test123@", &Argon2Encrypter::new());
         let user = user::User::config(user::UserConfig {
             id: user::Id::parse_str("019128e9-f215-7f81-b053-e8edd437df24")
                 .expect("Valid id from fixtures"),
@@ -140,9 +136,6 @@ mod tests {
             email_verified: true,
             metadata: Metadata::new(),
         });
-
-        let encrypter = PasswordEncrypter::new(Argon2Encrypt::new());
-        let password = encrypter.encrypt("Test123@");
 
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
