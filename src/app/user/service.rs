@@ -1,3 +1,7 @@
+mod dto;
+
+pub use dto::{LoginInput, RegisterInput};
+
 use domain::user;
 use domain::user::password::{Encrypt, PasswordEncrypter};
 
@@ -17,8 +21,19 @@ impl<T: Encrypt, R: user::Repository> UserService<T, R> {
 }
 
 impl<T: Encrypt, R: user::Repository> UserService<T, R> {
-    #[allow(clippy::unused_async)]
-    pub async fn register(&mut self) -> Result<(), user::Error> {
-        todo!()
+    pub async fn login(&mut self, input: LoginInput) -> Result<String, user::Error> {
+        let user_password = self.users.find_password(input.email).await?;
+        let password = self.encrypter.encrypt(&input.password);
+        if !self.encrypter.verify(&password, &user_password) {
+            return Err(user::Error::Credentials);
+        }
+
+        Ok(String::from("token"))
+    }
+
+    pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
+        let user = user::User::new(input.username, input.email);
+        let password = self.encrypter.encrypt(&input.password);
+        self.users.create(user, password).await
     }
 }

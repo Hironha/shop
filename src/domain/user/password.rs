@@ -1,7 +1,8 @@
 use std::fmt;
 
 pub trait Encrypt {
-    fn encrypt(&self, password: impl Into<String>) -> String;
+    fn encrypt(&self, password: &str) -> String;
+    fn verify(&self, left: &str, right: &str) -> bool;
 }
 
 #[derive(Clone, Debug)]
@@ -20,8 +21,8 @@ impl<T: Encrypt> PasswordEncrypter<T> {
         Password(self.encrypter.encrypt(password))
     }
 
-    pub fn compare(&self, left: &Password, right: &str) -> bool {
-        left.0 == right
+    pub fn verify(&self, left: &Password, right: &str) -> bool {
+        self.encrypter.verify(left.as_str(), right)
     }
 }
 
