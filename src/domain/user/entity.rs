@@ -21,6 +21,17 @@ impl User {
             metadata: Metadata::new(),
         }
     }
+
+    #[must_use]
+    pub fn config(cfg: UserConfig) -> Self {
+        Self {
+            id: cfg.id,
+            username: cfg.username,
+            email: cfg.email,
+            email_verified: cfg.email_verified,
+            metadata: cfg.metadata,
+        }
+    }
 }
 
 impl User {
@@ -33,4 +44,13 @@ impl User {
     pub fn is_email_verified(&self) -> bool {
         self.email_verified
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct UserConfig {
+    pub id: Id,
+    pub username: Username,
+    pub email: Email,
+    pub email_verified: bool,
+    pub metadata: Metadata,
 }

@@ -21,8 +21,8 @@ impl<T: Encrypt> PasswordEncrypter<T> {
         Password(self.encrypter.encrypt(password))
     }
 
-    pub fn verify(&self, hashed: &str, right: &str) -> bool {
-        self.encrypter.verify(hashed, right)
+    pub fn verify(&self, hashed: &str, password: &str) -> bool {
+        self.encrypter.verify(hashed, password)
     }
 }
 

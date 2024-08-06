@@ -163,6 +163,14 @@ impl fmt::Display for Email {
     }
 }
 
+impl TryFrom<String> for Email {
+    type Error = EmailError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_new(value)
+    }
+}
+
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 #[error("Provided string `{0}` is not a valid user id")]
 pub struct ParseIdError(Box<str>);

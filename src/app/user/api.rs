@@ -1,13 +1,13 @@
 use axum::extract::{Json, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use domain::user;
 
 use super::service::{LoginInput, RegisterInput, UserService};
 use crate::app::ApiError;
-use crate::infra::Argon2Encrypt;
+use crate::infra::{Argon2Encrypt, PgUsers};
 use crate::Context;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -33,7 +33,8 @@ pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>
         password: body.password,
     };
 
-    let mut service = UserService::new(Argon2Encrypt::new(), ctx.users);
+    let pg_users = PgUsers::new(ctx.pool);
+    let mut service = UserService::new(Argon2Encrypt::new(), pg_users, ctx.sessions);
     // TODO: map error into response
     service.register(input).await.unwrap();
 
@@ -46,11 +47,6 @@ pub struct LoginBody {
     pub password: String,
 }
 
-#[derive(Clone, Debug, Serialize)]
-pub struct LoginOut {
-    pub token: String,
-}
-
 pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> Response {
     let email = match user::Email::try_new(body.email) {
         Ok(email) => email,
@@ -61,15 +57,13 @@ pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> R
         password: body.password,
     };
 
-    let service = UserService::new(Argon2Encrypt::new(), ctx.users);
+    let pg_users = PgUsers::new(ctx.pool);
+    let mut service = UserService::new(Argon2Encrypt::new(), pg_users, ctx.sessions);
     // TODO: map error into response
-    let token = service
-        .login(input)
-        .await
-        .inspect_err(|err| println!("{err}"))
-        .unwrap();
+    let session_id = service.login(input).await.unwrap();
+    println!("{session_id}");
 
-    (StatusCode::OK, Json(LoginOut { token })).into_response()
+    (StatusCode::OK).into_response()
 }
 
 fn create_validation_error_response(err: &dyn std::error::Error) -> Response {

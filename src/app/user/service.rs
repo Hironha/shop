@@ -1,38 +1,70 @@
 mod dto;
-
-pub use dto::{LoginInput, RegisterInput};
+pub mod session;
 
 use domain::user;
 use domain::user::password::{Encrypt, PasswordEncrypter};
+pub use dto::{LoginInput, RegisterInput};
 
 #[derive(Clone, Debug)]
-pub struct UserService<T, R> {
+pub struct UserService<T, R, S> {
     encrypter: PasswordEncrypter<T>,
     users: R,
+    sessions: S,
 }
 
-impl<T: Encrypt, R: user::Repository> UserService<T, R> {
-    pub fn new(encrypter: T, users: R) -> Self {
+impl<T, R, S> UserService<T, R, S>
+where
+    T: Encrypt,
+    R: user::Repository,
+    S: session::Manager,
+{
+    pub fn new(encrypter: T, users: R, sessions: S) -> Self {
         Self {
             encrypter: PasswordEncrypter::new(encrypter),
             users,
+            sessions,
         }
     }
 }
 
-impl<T: Encrypt, R: user::Repository> UserService<T, R> {
-    pub async fn login(&self, input: LoginInput) -> Result<String, user::Error> {
-        let user_password = self.users.find_password(&input.email).await?;
-        if !self.encrypter.verify(&user_password, &input.password) {
+impl<T, R, S> UserService<T, R, S>
+where
+    T: Encrypt,
+    R: user::Repository,
+    S: session::Manager,
+{
+    pub async fn login(&mut self, input: LoginInput) -> Result<session::Id, user::Error> {
+        let password = self.users.find_password(&input.email).await?;
+        if !self.encrypter.verify(&password, &input.password) {
             return Err(user::Error::Credentials);
         }
 
-        Ok(String::from("token"))
+        let user = self.users.find_by_email(&input.email).await?;
+        if !user.is_email_verified() {
+            return Err(user::Error::any("Verify your email before you can login"));
+        }
+
+        let Some(session_id) = self.sessions.create(&user).await else {
+            return Err(user::Error::any("Failed creating user session"));
+        };
+
+        Ok(session_id)
+    }
+
+    #[allow(clippy::unused_async)]
+    pub async fn logout(&mut self) -> Result<(), user::Error> {
+        // self.session.revoke(input.session_id).await?;
+        todo!()
     }
 
     pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
         let user = user::User::new(input.username, input.email);
         let password = self.encrypter.encrypt(&input.password);
         self.users.create(&user, &password).await
+    }
+
+    #[allow(clippy::unused_async)]
+    pub async fn verify_email(&mut self) -> Result<(), user::Error> {
+        todo!()
     }
 }

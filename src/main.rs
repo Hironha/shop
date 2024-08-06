@@ -8,6 +8,7 @@ mod infra;
 
 use axum::routing;
 use axum::Router;
+use infra::InMemSessions;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
@@ -17,13 +18,10 @@ use crate::app::extra::api as extra_api;
 use crate::app::product::api as product_api;
 use crate::app::user::api as user_api;
 
-use crate::infra::InMemUsers;
-
 #[derive(Clone, Debug)]
 pub struct Context {
     pool: PgPool,
-    // TODO: temporary for tests
-    users: InMemUsers,
+    sessions: InMemSessions,
 }
 
 #[tokio::main]
@@ -39,7 +37,7 @@ async fn main() {
 
     let context = Context {
         pool,
-        users: InMemUsers::new(),
+        sessions: InMemSessions::new(),
     };
 
     let app = Router::new()
