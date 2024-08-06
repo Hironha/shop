@@ -15,10 +15,15 @@ use tokio::net::TcpListener;
 use crate::app::catalog::api as catalog_api;
 use crate::app::extra::api as extra_api;
 use crate::app::product::api as product_api;
+use crate::app::user::api as user_api;
+
+use crate::infra::InMemUsers;
 
 #[derive(Clone, Debug)]
 pub struct Context {
     pool: PgPool,
+    // TODO: temporary for tests
+    users: InMemUsers,
 }
 
 #[tokio::main]
@@ -32,12 +37,17 @@ async fn main() {
         .await
         .expect("Connection to postgres database");
 
-    let context = Context { pool };
+    let context = Context {
+        pool,
+        users: InMemUsers::new(),
+    };
 
     let app = Router::new()
         .nest(
             "/api",
             Router::new()
+                .route("/register", routing::post(user_api::register))
+                .route("/login", routing::post(user_api::login))
                 .route(
                     "/catalogs",
                     routing::get(catalog_api::list).post(catalog_api::create),

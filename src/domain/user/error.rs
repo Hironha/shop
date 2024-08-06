@@ -10,6 +10,8 @@ pub enum Error {
     #[error(transparent)]
     Conflict(#[from] ConflictKind),
     #[error(transparent)]
+    NotFound(#[from] NotFoundKind),
+    #[error(transparent)]
     Internal(Box<dyn std::error::Error>),
 }
 
@@ -22,6 +24,10 @@ impl Error {
         Self::Conflict(ConflictKind::Email(email))
     }
 
+    pub fn email_not_found(email: Email) -> Self {
+        Self::NotFound(NotFoundKind::Email(email))
+    }
+
     pub fn id_conflict(id: Id) -> Self {
         Self::Conflict(ConflictKind::Id(id))
     }
@@ -32,5 +38,13 @@ pub enum ConflictKind {
     #[error("User with id `{0}` already exists")]
     Id(Id),
     #[error("User with email `{0}` already exists")]
+    Email(Email),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Error)]
+pub enum NotFoundKind {
+    #[error("User with id `{0}` not found")]
+    Id(Id),
+    #[error("User with email `{0}` not found")]
     Email(Email),
 }

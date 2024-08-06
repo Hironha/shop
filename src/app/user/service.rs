@@ -21,10 +21,9 @@ impl<T: Encrypt, R: user::Repository> UserService<T, R> {
 }
 
 impl<T: Encrypt, R: user::Repository> UserService<T, R> {
-    pub async fn login(&mut self, input: LoginInput) -> Result<String, user::Error> {
-        let user_password = self.users.find_password(input.email).await?;
-        let password = self.encrypter.encrypt(&input.password);
-        if !self.encrypter.verify(&password, &user_password) {
+    pub async fn login(&self, input: LoginInput) -> Result<String, user::Error> {
+        let user_password = self.users.find_password(&input.email).await?;
+        if !self.encrypter.verify(&user_password, &input.password) {
             return Err(user::Error::Credentials);
         }
 
@@ -34,6 +33,6 @@ impl<T: Encrypt, R: user::Repository> UserService<T, R> {
     pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
         let user = user::User::new(input.username, input.email);
         let password = self.encrypter.encrypt(&input.password);
-        self.users.create(user, password).await
+        self.users.create(&user, &password).await
     }
 }

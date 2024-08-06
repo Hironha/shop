@@ -2,7 +2,7 @@ use std::fmt;
 
 pub trait Encrypt {
     fn encrypt(&self, password: &str) -> String;
-    fn verify(&self, left: &str, right: &str) -> bool;
+    fn verify(&self, hashed: &str, pwd: &str) -> bool;
 }
 
 #[derive(Clone, Debug)]
@@ -21,8 +21,8 @@ impl<T: Encrypt> PasswordEncrypter<T> {
         Password(self.encrypter.encrypt(password))
     }
 
-    pub fn verify(&self, left: &Password, right: &str) -> bool {
-        self.encrypter.verify(left.as_str(), right)
+    pub fn verify(&self, hashed: &str, right: &str) -> bool {
+        self.encrypter.verify(hashed, right)
     }
 }
 
