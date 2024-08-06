@@ -16,11 +16,6 @@ impl Id {
         Self(Uuid::now_v7())
     }
 
-    /// Try parsing `value` into [`Id`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `value` is not a valid [`Id`]
     pub fn parse_str(value: &str) -> Result<Self, ParseIdError> {
         match Uuid::parse_str(value) {
             Ok(uuid) => Ok(Self(uuid)),
@@ -60,11 +55,6 @@ pub struct Name(String);
 impl Name {
     const MAX_LEN: usize = 64;
 
-    /// Try parsing `name` into [`Name`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `name` does not fit into [`Name`] constraints
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
         let mut name: String = name.into();
         trim_in_place(&mut name);
@@ -101,11 +91,6 @@ pub struct Extras(Vec<extra::Extra>);
 impl Extras {
     pub const MAX_LEN: usize = 32;
 
-    /// Try parsing `extras` into [`Extras`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `extras` has more items than allowed
     pub fn new(extras: Vec<extra::Extra>) -> Result<Self, ExtrasError> {
         if extras.len() > Self::MAX_LEN {
             return Err(ExtrasError::Length);
@@ -192,11 +177,6 @@ pub enum Kind {
 }
 
 impl Kind {
-    /// Try parsing `value` into [`Kind`]
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ParseKindError`] when `value` cannot be parsed to [`Kind`]
     pub fn parse_str(value: &str) -> Result<Self, ParseKindError> {
         match value {
             "brazillian" => Ok(Self::Brazillian),

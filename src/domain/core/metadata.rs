@@ -17,12 +17,6 @@ impl Metadata {
         }
     }
 
-    /// Try creating a [`Metadata`] with provided configuration
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `created_at` is bigger than `updated_at`, since it's
-    /// impossible to be updated but not created
     pub fn configured(
         created_at: OffsetDateTime,
         updated_at: OffsetDateTime,

@@ -15,11 +15,6 @@ impl Id {
         Self(Uuid::now_v7())
     }
 
-    /// Try parsing `value` into [`Id`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `value` cannot be parsed into [`Id`]
     pub fn parse_str(value: &str) -> Result<Self, ParseIdError> {
         match Uuid::parse_str(value) {
             Ok(uuid) => Ok(Self(uuid)),
@@ -59,11 +54,6 @@ pub struct Name(String);
 impl Name {
     pub const MAX_LEN: usize = 64;
 
-    /// Try parsing `name` into [`Name`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `name` is not a valid [`Name`]
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
         let mut name: String = name.into();
         trim_in_place(&mut name);
@@ -95,15 +85,10 @@ pub struct Description(String);
 impl Description {
     pub const MAX_LEN: usize = 128;
 
-    /// Try parsing `description` into [`Description`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `description` is not a valid [`Description`]
     pub fn new(description: impl Into<String>) -> Result<Self, DescriptionError> {
         let mut description: String = description.into();
         trim_in_place(&mut description);
-        
+
         if description.len() > Self::MAX_LEN {
             return Err(DescriptionError::Length);
         }
@@ -131,11 +116,6 @@ pub struct Products(Vec<product::Product>);
 impl Products {
     pub const MAX_LEN: u8 = 64;
 
-    /// Try parsing `products` into [`Products`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `products` have more items than allowed
     pub fn new(products: Vec<product::Product>) -> Result<Self, ProductsError> {
         if products.len() > usize::from(Self::MAX_LEN) {
             return Err(ProductsError::Length);

@@ -15,11 +15,6 @@ impl Id {
         Self(Uuid::now_v7())
     }
 
-    /// Try parsing a `value` into [`Id`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `value` is not a valid [`Id`]
     pub fn parse_str(value: &str) -> Result<Self, IdError> {
         match Uuid::parse_str(value) {
             Ok(uuid) => Ok(Self(uuid)),
@@ -59,11 +54,6 @@ pub struct Name(String);
 impl Name {
     pub const MAX_LEN: usize = 128;
 
-    /// Try parsing `name` into [`Name`]
-    ///
-    /// # Errors
-    ///
-    /// Returns an [`Err`] if `name` does not fit into [`Name`] constraints
     pub fn new(name: impl Into<String>) -> Result<Self, NameError> {
         let mut name: String = name.into();
         trim_in_place(&mut name);

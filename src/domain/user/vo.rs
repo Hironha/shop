@@ -21,11 +21,6 @@ impl Id {
         Self(value)
     }
 
-    /// Try parsing `value` into [`Id`].
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ParseIdError`] if `value` is not a valid [`Id`].
     pub fn parse_str(value: &str) -> Result<Self, ParseIdError> {
         match Uuid::try_parse(value) {
             Ok(uuid) => Ok(Self(uuid)),
@@ -73,11 +68,6 @@ pub struct Username(String);
 impl Username {
     pub const MAX_LEN: usize = 64;
 
-    /// Try creating a new [`Username`] from `username`.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`UsernameError::Length`] if `username` has more characters than max allowed.
     pub fn try_new(username: impl Into<String>) -> Result<Self, UsernameError> {
         let mut username: String = username.into();
         trim_in_place(&mut username);
@@ -122,13 +112,6 @@ pub struct Email(String);
 impl Email {
     pub const MAX_LEN: usize = 256;
 
-    /// Try creating a new [`Email`] from `email`.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`EmailError::Length`] if `email` has too many characters. If the `email`
-    /// is invalid, returns a [`EmailError::Invalid`] error. Note that this validation
-    /// does not check if the `email` is really valid, only if it's a possible valid email.
     pub fn try_new(email: impl Into<String>) -> Result<Self, EmailError> {
         let mut email: String = email.into();
         trim_in_place(&mut email);
