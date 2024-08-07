@@ -29,6 +29,11 @@ impl session::Manager for InMemSessions {
         todo!()
     }
 
+    async fn revoke(&mut self, id: session::Id) {
+        let mut sessions = self.sessions.try_lock().unwrap();
+        sessions.remove(&id);
+    }
+
     async fn validate(&self, id: session::Id) -> bool {
         let Ok(sessions) = self.sessions.try_lock() else {
             return false;

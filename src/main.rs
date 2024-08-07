@@ -44,8 +44,9 @@ async fn main() {
         .nest(
             "/api",
             Router::new()
-                .route("/register", routing::post(user_api::register))
                 .route("/login", routing::post(user_api::login))
+                .route("/logout", routing::post(user_api::logout))
+                .route("/register", routing::post(user_api::register))
                 .route(
                     "/catalogs",
                     routing::get(catalog_api::list).post(catalog_api::create),

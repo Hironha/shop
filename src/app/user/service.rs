@@ -3,7 +3,7 @@ pub mod session;
 
 use domain::user;
 use domain::user::password::{Encrypter, Password};
-pub use dto::{LoginInput, RegisterInput};
+pub use dto::{LoginInput, LogoutInput, RegisterInput};
 
 #[derive(Clone, Debug)]
 pub struct UserService<T, R, S> {
@@ -34,7 +34,7 @@ where
     S: session::Manager,
 {
     pub async fn login(&mut self, input: LoginInput) -> Result<session::Id, user::Error> {
-        let password = self.users.find_password(&input.email).await?;
+        let password = self.users.find_password_by_email(&input.email).await?;
         if !self.encrypter.verify(&password, &input.password) {
             return Err(user::Error::Credentials);
         }
@@ -51,10 +51,9 @@ where
         Ok(session_id)
     }
 
-    #[allow(clippy::unused_async)]
-    pub async fn logout(&mut self) -> Result<(), user::Error> {
-        // self.session.revoke(input.session_id).await?;
-        todo!()
+    pub async fn logout(&mut self, input: LogoutInput) -> Result<(), user::Error> {
+        self.sessions.revoke(input.session_id).await;
+        Ok(())
     }
 
     pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
