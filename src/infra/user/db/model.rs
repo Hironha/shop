@@ -13,6 +13,7 @@ pub struct UserModel {
     #[sqlx(try_from = "String")]
     pub email: user::Email,
     pub email_verified: bool,
+    #[sqlx(rename = "password_hash")]
     pub password: String,
     pub created_at: OffsetDateTime,
     pub updated_at: OffsetDateTime,

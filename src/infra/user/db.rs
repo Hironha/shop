@@ -68,8 +68,8 @@ impl user::Repository for PgUsers {
         user.try_into_entity().map_err(user::Error::any)
     }
 
-    async fn find_password(&self, email: &user::Email) -> Result<String, user::Error> {
-        let query = include_str!("./db/queries/find_password.sql");
+    async fn find_password_by_email(&self, email: &user::Email) -> Result<String, user::Error> {
+        let query = include_str!("./db/queries/find_password_by_email.sql");
         let password: String = sqlx::query_scalar(query)
             .bind(email.as_str())
             .fetch_one(&self.pool)
@@ -140,5 +140,47 @@ mod tests {
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
         assert!(matches!(result, Err(Error::Conflict(ConflictKind::Id(id))) if id == user.id()));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_by_email_method_woks(pool: PgPool) {
+        let email = user::Email::try_new("test@test.com").expect("Valid email from fixtures");
+
+        let pg_users = PgUsers::new(pool);
+        let result = pg_users.find_by_email(&email).await;
+        assert!(result.is_ok());
+
+        let user = result.unwrap();
+        assert_eq!(user.email, email);
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_by_email_with_not_found(pool: PgPool) {
+        use domain::user::{Error, NotFoundKind};
+
+        let email = user::Email::try_new("jeff@gmail.com").expect("Valid email not in fixtures");
+
+        let pg_users = PgUsers::new(pool);
+        let result = pg_users.find_by_email(&email).await;
+        assert!(matches!(result, Err(Error::NotFound(NotFoundKind::Email(e))) if e == email));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_password_by_email_method_works(pool: PgPool) {
+        let email = user::Email::try_new("test@test.com").expect("Valid email from fixtures");
+
+        let pg_users = PgUsers::new(pool);
+        let result = pg_users.find_password_by_email(&email).await;
+        assert_eq!(result.ok(), Some(String::from("test")));
+    }
+
+    #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
+    async fn find_password_by_email_with_not_found(pool: PgPool) {
+        use domain::user::{Error, NotFoundKind};
+        let email = user::Email::try_new("jeff@jeff.com").expect("Valid email not in fixtures");
+
+        let pg_users = PgUsers::new(pool);
+        let result = pg_users.find_password_by_email(&email).await;
+        assert!(matches!(result, Err(Error::NotFound(NotFoundKind::Email(e))) if e == email));
     }
 }
