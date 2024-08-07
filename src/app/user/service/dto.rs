@@ -19,3 +19,8 @@ pub struct RegisterInput {
     pub email: user::Email,
     pub password: String,
 }
+
+#[derive(Clone, Debug)]
+pub struct VerifyEmail {
+    pub email: user::Email,
+}

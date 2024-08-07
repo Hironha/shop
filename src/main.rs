@@ -6,9 +6,10 @@
 mod app;
 mod infra;
 
+use infra::InMemSessions;
+
 use axum::routing;
 use axum::Router;
-use infra::InMemSessions;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
