@@ -5,10 +5,14 @@ use super::{Email, Id};
 #[derive(Debug, Error)]
 #[must_use]
 pub enum Error {
-    #[error(transparent)]
-    Conflict(#[from] ConflictKind),
-    #[error(transparent)]
-    NotFound(#[from] NotFoundKind),
+    #[error("User with email `{0}` already exists")]
+    EmailConflict(Email),
+    #[error("User with email `{0}` not found")]
+    EmailNotFound(Email),
+    #[error("User with id `{0}` already exists")]
+    IdConflict(Id),
+    #[error("User with id `{0}` not found")]
+    IdNotFound(Id),
     #[error(transparent)]
     Internal(Box<dyn std::error::Error>),
 }
@@ -17,32 +21,4 @@ impl Error {
     pub fn any(err: impl Into<Box<dyn std::error::Error>>) -> Self {
         Self::Internal(err.into())
     }
-
-    pub fn email_conflict(email: Email) -> Self {
-        Self::Conflict(ConflictKind::Email(email))
-    }
-
-    pub fn email_not_found(email: Email) -> Self {
-        Self::NotFound(NotFoundKind::Email(email))
-    }
-
-    pub fn id_conflict(id: Id) -> Self {
-        Self::Conflict(ConflictKind::Id(id))
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Error)]
-pub enum ConflictKind {
-    #[error("User with id `{0}` already exists")]
-    Id(Id),
-    #[error("User with email `{0}` already exists")]
-    Email(Email),
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Error)]
-pub enum NotFoundKind {
-    #[error("User with id `{0}` not found")]
-    Id(Id),
-    #[error("User with email `{0}` not found")]
-    Email(Email),
 }

@@ -6,6 +6,6 @@ mod repository;
 mod vo;
 
 pub use entity::{User, UserConfig};
-pub use error::{ConflictKind, Error, NotFoundKind};
+pub use error::Error;
 pub use repository::Repository;
 pub use vo::{Email, EmailError, Id, ParseIdError, Username, UsernameError};

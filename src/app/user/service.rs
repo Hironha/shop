@@ -41,7 +41,12 @@ where
     U: mail::Mailer,
 {
     pub async fn login(&mut self, input: LoginInput) -> Result<user::Id, LoginError> {
-        let password = self.users.find_password_by_email(&input.email).await?;
+        let password = match self.users.find_password_by_email(&input.email).await {
+            Ok(password) => password,
+            Err(user::Error::EmailNotFound(_)) => return Err(LoginError::Credentials),
+            Err(err) => return Err(LoginError::User(err)),
+        };
+
         if !self.encrypter.verify(&password, &input.password) {
             return Err(LoginError::Credentials);
         }

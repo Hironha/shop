@@ -6,7 +6,8 @@ use serde::Deserialize;
 use domain::user;
 
 use super::service::{
-    LoginError, LoginInput, LogoutError, LogoutInput, RegisterError, RegisterInput, UserService,
+    session, LoginError, LoginInput, LogoutError, LogoutInput, RegisterError, RegisterInput,
+    UserService,
 };
 use crate::app::ApiError;
 use crate::infra::{Argon2Encrypter, LettreMailer, PgSessions, PgUsers};
@@ -73,7 +74,6 @@ pub struct RegisterBody {
     pub password: String,
 }
 
-#[allow(clippy::unused_async)]
 pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>) -> Response {
     let username = match user::Username::try_new(body.username) {
         Ok(username) => username,
@@ -102,7 +102,7 @@ pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>
 
 fn map_login_error(err: &LoginError) -> Response {
     match err {
-        LoginError::Credentials | LoginError::User(user::Error::NotFound(_)) => (
+        LoginError::Credentials => (
             StatusCode::BAD_REQUEST,
             Json(ApiError::new("Credentials", err.to_string())),
         ),
@@ -110,10 +110,8 @@ fn map_login_error(err: &LoginError) -> Response {
             StatusCode::BAD_REQUEST,
             Json(ApiError::new("Unverified", err.to_string())),
         ),
-        LoginError::User(_) | LoginError::Session(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(ApiError::internal()),
-        ),
+        LoginError::User(user_err) => return map_user_error(user_err),
+        LoginError::Session(session_err) => return map_session_error(session_err),
     }
     .into_response()
 }
@@ -133,12 +131,42 @@ fn map_logout_error(err: &LogoutError) -> Response {
 }
 
 fn map_register_error(err: &RegisterError) -> Response {
-    use user::{ConflictKind, Error};
-
     match err {
-        RegisterError::User(Error::Conflict(ConflictKind::Email(_))) => (
+        RegisterError::User(user::Error::EmailConflict(_)) => (
             StatusCode::CONFLICT,
             Json(ApiError::new("Conflict", err.to_string())),
+        ),
+        _ => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiError::internal()),
+        ),
+    }
+    .into_response()
+}
+
+fn map_user_error(err: &user::Error) -> Response {
+    match err {
+        user::Error::EmailConflict(_) => (
+            StatusCode::CONFLICT,
+            Json(ApiError::new("Conflict", err.to_string())),
+        ),
+        user::Error::EmailNotFound(_) => (
+            StatusCode::BAD_REQUEST,
+            Json(ApiError::new("Credentials", "Invalid user credentials")),
+        ),
+        _ => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiError::internal()),
+        ),
+    }
+    .into_response()
+}
+
+fn map_session_error(err: &session::Error) -> Response {
+    match err {
+        session::Error::NotFound(_) => (
+            StatusCode::UNAUTHORIZED,
+            Json(ApiError::new("Unauthorized", err.to_string())),
         ),
         _ => (
             StatusCode::INTERNAL_SERVER_ERROR,

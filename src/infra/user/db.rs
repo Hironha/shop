@@ -43,9 +43,9 @@ impl user::Repository for PgUsers {
             .await
             .map_err(|err| {
                 if Self::is_pk_error(&err) {
-                    user::Error::id_conflict(user.id())
+                    user::Error::IdConflict(user.id())
                 } else if Self::is_ak_email_error(&err) {
-                    user::Error::email_conflict(user.email.clone())
+                    user::Error::EmailConflict(user.email.clone())
                 } else {
                     user::Error::any(err)
                 }
@@ -61,7 +61,7 @@ impl user::Repository for PgUsers {
             .fetch_one(&self.pool)
             .await
             .map_err(|err| match err {
-                sqlx::Error::RowNotFound => user::Error::email_not_found(email.clone()),
+                sqlx::Error::RowNotFound => user::Error::EmailNotFound(email.clone()),
                 _ => user::Error::any(err),
             })?;
 
@@ -75,7 +75,7 @@ impl user::Repository for PgUsers {
             .fetch_one(&self.pool)
             .await
             .map_err(|err| match err {
-                sqlx::Error::RowNotFound => user::Error::email_not_found(email.clone()),
+                sqlx::Error::RowNotFound => user::Error::EmailNotFound(email.clone()),
                 _ => user::Error::any(err),
             })?;
 
@@ -106,8 +106,6 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn create_with_id_conflict(pool: PgPool) {
-        use domain::user::{ConflictKind, Error};
-
         let password = Password::new("Test123@", &Argon2Encrypter::new());
         let user = user::User::config(user::UserConfig {
             id: user::Id::parse_str("019128e9-f215-7f81-b053-e8edd437df24")
@@ -120,13 +118,11 @@ mod tests {
 
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
-        assert!(matches!(result, Err(Error::Conflict(ConflictKind::Id(id))) if id == user.id()));
+        assert!(matches!(result, Err(user::Error::IdConflict(id)) if id == user.id()));
     }
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn create_with_email_conflict(pool: PgPool) {
-        use domain::user::{ConflictKind, Error};
-
         let password = Password::new("Test123@", &Argon2Encrypter::new());
         let user = user::User::config(user::UserConfig {
             id: user::Id::parse_str("019128e9-f215-7f81-b053-e8edd437df24")
@@ -139,7 +135,7 @@ mod tests {
 
         let mut pg_users = PgUsers::new(pool);
         let result = pg_users.create(&user, &password).await;
-        assert!(matches!(result, Err(Error::Conflict(ConflictKind::Id(id))) if id == user.id()));
+        assert!(matches!(result, Err(user::Error::IdConflict(id)) if id == user.id()));
     }
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
@@ -156,13 +152,11 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn find_by_email_with_not_found(pool: PgPool) {
-        use domain::user::{Error, NotFoundKind};
-
         let email = user::Email::try_new("jeff@gmail.com").expect("Valid email not in fixtures");
 
         let pg_users = PgUsers::new(pool);
         let result = pg_users.find_by_email(&email).await;
-        assert!(matches!(result, Err(Error::NotFound(NotFoundKind::Email(e))) if e == email));
+        assert!(matches!(result, Err(user::Error::EmailNotFound(e)) if e == email));
     }
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
@@ -176,11 +170,10 @@ mod tests {
 
     #[sqlx::test(fixtures("./db/fixtures/seed.sql"))]
     async fn find_password_by_email_with_not_found(pool: PgPool) {
-        use domain::user::{Error, NotFoundKind};
         let email = user::Email::try_new("jeff@jeff.com").expect("Valid email not in fixtures");
 
         let pg_users = PgUsers::new(pool);
         let result = pg_users.find_password_by_email(&email).await;
-        assert!(matches!(result, Err(Error::NotFound(NotFoundKind::Email(e))) if e == email));
+        assert!(matches!(result, Err(user::Error::EmailNotFound(e)) if e == email));
     }
 }
