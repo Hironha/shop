@@ -5,7 +5,9 @@ use serde::Deserialize;
 
 use domain::user;
 
-use super::service::{LoginInput, LogoutInput, RegisterInput, UserService};
+use super::service::{
+    LoginError, LoginInput, LogoutError, LogoutInput, RegisterError, RegisterInput, UserService,
+};
 use crate::app::ApiError;
 use crate::infra::{Argon2Encrypter, LettreMailer, PgSessions, PgUsers};
 use crate::Context;
@@ -19,7 +21,7 @@ pub struct LoginBody {
 pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> Response {
     let email = match user::Email::try_new(body.email) {
         Ok(email) => email,
-        Err(err) => return create_validation_error_response(&err),
+        Err(err) => return map_validation_error(&err),
     };
     let input = LoginInput {
         email,
@@ -29,10 +31,15 @@ pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> R
     let pg_users = PgUsers::new(ctx.pool.clone());
     let pg_sessions = PgSessions::new(ctx.pool);
     let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
-    // TODO: map error into response
-    let user_id = service.login(input).await.unwrap();
-    println!("{user_id:?}");
+    let user_id = match service.login(input).await {
+        Ok(user_id) => user_id,
+        Err(err) => {
+            eprintln!("Login error: {err:?}");
+            return map_login_error(&err);
+        }
+    };
 
+    println!("{user_id:?}");
     (StatusCode::OK).into_response()
 }
 
@@ -44,15 +51,17 @@ pub struct LogoutBody {
 pub async fn logout(State(ctx): State<Context>, Json(body): Json<LogoutBody>) -> Response {
     let user_id = match user::Id::parse_str(&body.user_id) {
         Ok(session_id) => session_id,
-        Err(err) => return create_validation_error_response(&err),
+        Err(err) => return map_validation_error(&err),
     };
     let input = LogoutInput { user_id };
 
     let pg_users = PgUsers::new(ctx.pool.clone());
     let pg_sessions = PgSessions::new(ctx.pool);
     let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
-    // TODO: map error into response
-    service.logout(input).await.unwrap();
+    if let Err(err) = service.logout(input).await {
+        eprintln!("Logout error: {err:?}");
+        return map_logout_error(&err);
+    }
 
     (StatusCode::OK).into_response()
 }
@@ -68,11 +77,11 @@ pub struct RegisterBody {
 pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>) -> Response {
     let username = match user::Username::try_new(body.username) {
         Ok(username) => username,
-        Err(err) => return create_validation_error_response(&err),
+        Err(err) => return map_validation_error(&err),
     };
     let email = match user::Email::try_new(body.email) {
         Ok(email) => email,
-        Err(err) => return create_validation_error_response(&err),
+        Err(err) => return map_validation_error(&err),
     };
     let input = RegisterInput {
         username,
@@ -83,14 +92,62 @@ pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>
     let pg_users = PgUsers::new(ctx.pool.clone());
     let pg_sessions = PgSessions::new(ctx.pool);
     let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
-    // TODO: map error into response
-    service.register(input).await.unwrap();
+    if let Err(err) = service.register(input).await {
+        eprintln!("Register error: {err:?}");
+        return map_register_error(&err);
+    }
 
     (StatusCode::CREATED).into_response()
 }
 
-fn create_validation_error_response(err: &dyn std::error::Error) -> Response {
-    eprintln!("Validation error: {err:?}");
-    let body = ApiError::new("Validation", err.to_string());
-    (StatusCode::BAD_GATEWAY, Json(body)).into_response()
+fn map_login_error(err: &LoginError) -> Response {
+    match err {
+        LoginError::Credentials | LoginError::User(user::Error::NotFound(_)) => (
+            StatusCode::BAD_REQUEST,
+            Json(ApiError::new("Credentials", err.to_string())),
+        ),
+        LoginError::Unverified => (
+            StatusCode::BAD_REQUEST,
+            Json(ApiError::new("Unverified", err.to_string())),
+        ),
+        LoginError::User(_) | LoginError::Session(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiError::internal()),
+        ),
+    }
+    .into_response()
+}
+
+fn map_logout_error(err: &LogoutError) -> Response {
+    match err {
+        LogoutError::NotFound(_) => (
+            StatusCode::UNAUTHORIZED,
+            Json(ApiError::new("Unauthorized", "User is not authorized")),
+        ),
+        LogoutError::Session(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiError::internal()),
+        ),
+    }
+    .into_response()
+}
+
+fn map_register_error(err: &RegisterError) -> Response {
+    use user::{ConflictKind, Error};
+
+    match err {
+        RegisterError::User(Error::Conflict(ConflictKind::Email(_))) => (
+            StatusCode::CONFLICT,
+            Json(ApiError::new("Conflict", err.to_string())),
+        ),
+        _ => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiError::internal()),
+        ),
+    }
+    .into_response()
+}
+
+fn map_validation_error(err: &impl std::error::Error) -> Response {
+    (StatusCode::BAD_GATEWAY, Json(ApiError::validation(err))).into_response()
 }

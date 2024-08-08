@@ -4,7 +4,9 @@ pub mod session;
 
 use domain::user;
 use domain::user::password::{Encrypter, Password};
-pub use dto::{LoginInput, LogoutError, LogoutInput, RegisterInput, VerifyEmail};
+pub use dto::{
+    LoginError, LoginInput, LogoutError, LogoutInput, RegisterError, RegisterInput, VerifyEmail,
+};
 
 #[derive(Clone, Debug)]
 pub struct UserService<T, R, S, U> {
@@ -38,20 +40,20 @@ where
     S: Encrypter,
     U: mail::Mailer,
 {
-    pub async fn login(&mut self, input: LoginInput) -> Result<user::Id, user::Error> {
+    pub async fn login(&mut self, input: LoginInput) -> Result<user::Id, LoginError> {
         let password = self.users.find_password_by_email(&input.email).await?;
         if !self.encrypter.verify(&password, &input.password) {
-            return Err(user::Error::Credentials);
+            return Err(LoginError::Credentials);
         }
 
         let user = self.users.find_by_email(&input.email).await?;
         if !user.is_email_verified() {
-            return Err(user::Error::any("Verify your email before you can login"));
+            return Err(LoginError::Unverified);
         }
 
         match self.sessions.create(&user).await {
             Ok(()) | Err(session::Error::AlreadyExists(_)) => Ok(user.id()),
-            Err(err) => Err(user::Error::any(err)),
+            Err(err) => Err(LoginError::Session(err)),
         }
     }
 
@@ -63,22 +65,21 @@ where
         }
     }
 
-    pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {
+    pub async fn register(&mut self, input: RegisterInput) -> Result<(), RegisterError> {
         let user = user::User::new(input.username, input.email);
         let password = Password::new(&input.password, &self.encrypter);
         self.users.create(&user, &password).await?;
 
-        if let Err(err) = self.mailer.send(mail::MailKind::Welcome).await {
-            return Err(user::Error::any(err));
-        }
+        let mail = mail::MailKind::Welcome(user.id());
+        self.mailer.send(mail).await?;
 
         Ok(())
     }
 
     pub async fn verify_email(&mut self, input: VerifyEmail) -> Result<(), user::Error> {
-        let _user = self.users.find_by_email(&input.email).await?;
-
-        if let Err(err) = self.mailer.send(mail::MailKind::Verification).await {
+        let user = self.users.find_by_email(&input.email).await?;
+        let mail = mail::MailKind::Verification(user.id());
+        if let Err(err) = self.mailer.send(mail).await {
             return Err(user::Error::any(err));
         }
 

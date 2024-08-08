@@ -22,4 +22,12 @@ impl ApiError {
             time: OffsetDateTime::now_utc(),
         }
     }
+
+    pub(crate) fn validation(err: &impl std::error::Error) -> Self {
+        Self::new("Validation", err.to_string())
+    }
+
+    pub(crate) fn internal() -> Self {
+        Self::new("Internal", "Internal server error")
+    }
 }

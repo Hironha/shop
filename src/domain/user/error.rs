@@ -5,8 +5,6 @@ use super::{Email, Id};
 #[derive(Debug, Error)]
 #[must_use]
 pub enum Error {
-    #[error("Invalid user credentials")]
-    Credentials,
     #[error(transparent)]
     Conflict(#[from] ConflictKind),
     #[error(transparent)]
