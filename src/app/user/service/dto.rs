@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use domain::user;
 
 use super::session;
@@ -10,7 +12,15 @@ pub struct LoginInput {
 
 #[derive(Clone, Debug)]
 pub struct LogoutInput {
-    pub session_id: session::Id,
+    pub user_id: user::Id,
+}
+
+#[derive(Debug, Error)]
+pub enum LogoutError {
+    #[error("Session for user with id `{0}` not found")]
+    NotFound(user::Id),
+    #[error(transparent)]
+    Session(session::Error),
 }
 
 #[derive(Clone, Debug)]

@@ -5,10 +5,9 @@ use serde::Deserialize;
 
 use domain::user;
 
-use super::service::session;
 use super::service::{LoginInput, LogoutInput, RegisterInput, UserService};
 use crate::app::ApiError;
-use crate::infra::{Argon2Encrypter, LettreMailer, PgUsers};
+use crate::infra::{Argon2Encrypter, LettreMailer, PgSessions, PgUsers};
 use crate::Context;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -27,31 +26,31 @@ pub async fn login(State(ctx): State<Context>, Json(body): Json<LoginBody>) -> R
         password: body.password,
     };
 
-    let pg_users = PgUsers::new(ctx.pool);
-    let mut service =
-        UserService::new(pg_users, ctx.sessions, Argon2Encrypter::new(), LettreMailer);
+    let pg_users = PgUsers::new(ctx.pool.clone());
+    let pg_sessions = PgSessions::new(ctx.pool);
+    let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
     // TODO: map error into response
-    let session_id = service.login(input).await.unwrap();
-    println!("{session_id}");
+    let user_id = service.login(input).await.unwrap();
+    println!("{user_id:?}");
 
     (StatusCode::OK).into_response()
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct LogoutBody {
-    pub session_id: String,
+    pub user_id: String,
 }
 
 pub async fn logout(State(ctx): State<Context>, Json(body): Json<LogoutBody>) -> Response {
-    let session_id = match session::Id::parse_str(&body.session_id) {
+    let user_id = match user::Id::parse_str(&body.user_id) {
         Ok(session_id) => session_id,
         Err(err) => return create_validation_error_response(&err),
     };
-    let input = LogoutInput { session_id };
+    let input = LogoutInput { user_id };
 
-    let pg_users = PgUsers::new(ctx.pool);
-    let mut service =
-        UserService::new(pg_users, ctx.sessions, Argon2Encrypter::new(), LettreMailer);
+    let pg_users = PgUsers::new(ctx.pool.clone());
+    let pg_sessions = PgSessions::new(ctx.pool);
+    let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
     // TODO: map error into response
     service.logout(input).await.unwrap();
 
@@ -81,9 +80,9 @@ pub async fn register(State(ctx): State<Context>, Json(body): Json<RegisterBody>
         password: body.password,
     };
 
-    let pg_users = PgUsers::new(ctx.pool);
-    let mut service =
-        UserService::new(pg_users, ctx.sessions, Argon2Encrypter::new(), LettreMailer);
+    let pg_users = PgUsers::new(ctx.pool.clone());
+    let pg_sessions = PgSessions::new(ctx.pool);
+    let mut service = UserService::new(pg_users, pg_sessions, Argon2Encrypter::new(), LettreMailer);
     // TODO: map error into response
     service.register(input).await.unwrap();
 

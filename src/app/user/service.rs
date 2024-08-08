@@ -4,7 +4,7 @@ pub mod session;
 
 use domain::user;
 use domain::user::password::{Encrypter, Password};
-pub use dto::{LoginInput, LogoutInput, RegisterInput, VerifyEmail};
+pub use dto::{LoginInput, LogoutError, LogoutInput, RegisterInput, VerifyEmail};
 
 #[derive(Clone, Debug)]
 pub struct UserService<T, R, S, U> {
@@ -38,7 +38,7 @@ where
     S: Encrypter,
     U: mail::Mailer,
 {
-    pub async fn login(&mut self, input: LoginInput) -> Result<session::Id, user::Error> {
+    pub async fn login(&mut self, input: LoginInput) -> Result<user::Id, user::Error> {
         let password = self.users.find_password_by_email(&input.email).await?;
         if !self.encrypter.verify(&password, &input.password) {
             return Err(user::Error::Credentials);
@@ -49,16 +49,18 @@ where
             return Err(user::Error::any("Verify your email before you can login"));
         }
 
-        let Some(session_id) = self.sessions.create(&user).await else {
-            return Err(user::Error::any("Failed creating user session"));
-        };
-
-        Ok(session_id)
+        match self.sessions.create(&user).await {
+            Ok(()) | Err(session::Error::AlreadyExists(_)) => Ok(user.id()),
+            Err(err) => Err(user::Error::any(err)),
+        }
     }
 
-    pub async fn logout(&mut self, input: LogoutInput) -> Result<(), user::Error> {
-        self.sessions.revoke(input.session_id).await;
-        Ok(())
+    pub async fn logout(&mut self, input: LogoutInput) -> Result<(), LogoutError> {
+        match self.sessions.revoke(input.user_id).await {
+            Ok(()) => Ok(()),
+            Err(session::Error::NotFound(id)) => Err(LogoutError::NotFound(id)),
+            Err(err) => Err(LogoutError::Session(err)),
+        }
     }
 
     pub async fn register(&mut self, input: RegisterInput) -> Result<(), user::Error> {

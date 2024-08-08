@@ -16,9 +16,7 @@ create table if not exists auth.user (
 
 create table if not exists auth.session (
     id uuid,
-    user_id uuid,
     iss timestamptz not null,
     exp timestamptz not null,
-    constraint pk_session primary key (id, user_id),
-    constraint fk_session_user_id foreign key (user_id) references auth.user(id)
+    constraint pk_session primary key (id)
 );

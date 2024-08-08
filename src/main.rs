@@ -6,8 +6,6 @@
 mod app;
 mod infra;
 
-use infra::InMemSessions;
-
 use axum::routing;
 use axum::Router;
 use sqlx::postgres::PgPoolOptions;
@@ -22,7 +20,6 @@ use crate::app::user::api as user_api;
 #[derive(Clone, Debug)]
 pub struct Context {
     pool: PgPool,
-    sessions: InMemSessions,
 }
 
 #[tokio::main]
@@ -36,11 +33,7 @@ async fn main() {
         .await
         .expect("Connection to postgres database");
 
-    let context = Context {
-        pool,
-        sessions: InMemSessions::new(),
-    };
-
+    let context = Context { pool };
     let app = Router::new()
         .nest(
             "/api",
